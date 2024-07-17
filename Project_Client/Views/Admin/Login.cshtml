@@ -1,0 +1,72 @@
+﻿<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="~/css/style.css" />
+    <title>Link CSS to HTML</title>
+</head>
+<div class="wrapper fadeInDown">
+    <div id="formContent">
+        <!-- Tabs Titles -->
+        <h2 class="active"> Sign In </h2>
+        <h2 class="inactive underlineHover">Sign Up </h2>
+
+        <!-- Icon -->
+        <div class="fadeIn first">
+            <img src="https://i.pinimg.com/474x/d6/c6/16/d6c6162453eb688236d5bbedd036db56.jpg" id="icon" alt="User Icon" />
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm">
+            <input type="text" id="email" class="fadeIn second" name="email" placeholder="email">
+            <input type="text" id="password" class="fadeIn third" name="password" placeholder="password">
+            <input type="submit" class="fadeIn fourth" value="Log In">
+        </form>
+
+        <!-- Remind Passowrd -->
+        <div id="formFooter">
+            <a class="underlineHover" href="#">Forgot Password?</a>
+        </div>
+
+    </div>
+</div>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        fetch('https://localhost:7135/api/Login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.token) {
+                    // Lưu JWT vào localStorage
+                    localStorage.setItem('jwt', data.token);
+                    console.log('JWT saved to localStorage:', data.token);
+                    // Chuyển hướng hoặc làm gì đó sau khi đăng nhập thành công
+                    window.location.href = '/Admin/Dashboard';
+
+                } else {
+                    console.error('JWT not found in response');
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    });
+</script>
