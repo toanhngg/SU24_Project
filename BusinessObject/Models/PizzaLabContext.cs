@@ -45,6 +45,8 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
+                entity.Property(e => e.DateBooking).HasColumnType("datetime");
+
                 entity.Property(e => e.Note).HasMaxLength(200);
 
                 entity.HasOne(d => d.Customer)

@@ -687,7 +687,7 @@
                     <div class="col-lg-4 reservation-img" style="background-image: url(assets/img/reservation.jpg);" data-aos="zoom-out" data-aos-delay="200"></div>
 
                     <div class="col-lg-8 d-flex align-items-center reservation-form-bg">
-                        <form action="forms/book-a-table.php" method="post" role="form" class="php-email-form" data-aos="fade-up" data-aos-delay="100">
+                        <form id="bookingForm" role="form" class="php-email-form" data-aos="fade-up" data-aos-delay="100">
                             <div class="row gy-4">
                                 <div class="col-lg-4 col-md-6">
                                     <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
@@ -702,11 +702,11 @@
                                     <div class="validate"></div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
-                                    <input type="text" name="date" class="form-control" id="date" placeholder="Date" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
+                                    <input type="date" name="date" class="form-control" id="date" placeholder="Date" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
                                     <div class="validate"></div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
-                                    <input type="text" class="form-control" name="time" id="time" placeholder="Time" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
+                                    <input type="time" class="form-control" name="time" id="time" placeholder="Time" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
                                     <div class="validate"></div>
                                 </div>
                                 <div class="col-lg-4 col-md-6">
@@ -715,7 +715,7 @@
                                 </div>
                             </div>
                             <div class="form-group mt-3">
-                                <textarea class="form-control" name="message" rows="5" placeholder="Message"></textarea>
+                                <textarea class="form-control" name="message" id="message" rows="5" placeholder="Message"></textarea>
                                 <div class="validate"></div>
                             </div>
                             <div class="mb-3">
@@ -935,6 +935,59 @@
             }
         }
     </script>
+    <script>
+        document.getElementById("bookingForm").addEventListener("submit", async function (event) {
+            event.preventDefault(); // Ngăn chặn form gửi đi mặc định
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const phone = document.getElementById("phone").value;
+            const date = document.getElementById("date").value;
+            const time = document.getElementById("time").value;
+            const people = document.getElementById("people").value;
+            const message = document.getElementById("message").value;
+
+            const bookingRequest = {
+                customer: {
+                    id: 0, // Nếu không có ID, có thể bỏ qua hoặc để giá trị mặc định
+                    name: name,
+                    email: email,
+                    phone: phone
+                },
+                date: date,
+                time: time,
+                numberOfPeople: parseInt(people),
+                note: message
+            };
+
+            try {
+                const response = await fetch("https://localhost:7130/api/Booking/book", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(bookingRequest)
+                });
+
+                if (response.ok) {
+                    document.querySelector(".sent-message").style.display = "block";
+                    document.querySelector(".error-message").style.display = "none";
+                } else {
+                    const errorData = await response.json();
+                    document.querySelector(".error-message").innerText = errorData.title || "Error occurred";
+                    document.querySelector(".error-message").style.display = "block";
+                    document.querySelector(".sent-message").style.display = "none";
+                }
+            } catch (error) {
+                document.querySelector(".error-message").innerText = error.message;
+                document.querySelector(".error-message").style.display = "block";
+                document.querySelector(".sent-message").style.display = "none";
+            } finally {
+                document.querySelector(".loading").style.display = "none";
+            }
+        });
+    </script>
+
 </body>
 
 </html>

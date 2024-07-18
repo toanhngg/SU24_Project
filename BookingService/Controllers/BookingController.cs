@@ -7,6 +7,9 @@ using System.Text;
 using System.Text.Json;
 using System.Net.Http.Json; // Import this namespace
 using System.Net.Http.Headers;
+using System.Numerics;
+using System.Reflection.Metadata;
+using System.Xml.Linq;
 
 namespace BookingService.Controllers
 {
@@ -34,13 +37,20 @@ namespace BookingService.Controllers
                 int customerResponse = await SaveCustomer(request.Customer);
                 if (TimeSpan.TryParse(request.Time, out TimeSpan timeSpan))
                 {
+                    if (request.Date < DateTime.Now)
+                    {
+                        return BadRequest("Booking date cannot be in the past.");
+                    }
+
                     var bookingId = await SaveBooking(new Booking
                     {
                         CustomerId = customerResponse,
                         Date = request.Date,
                         Time = timeSpan,
                         NumberOfPeople = request.NumberOfPeople,
-                        Note = request.Note
+                        Note = request.Note,
+                        DateBooking = DateTime.Now
+
                     });
                     PublishBookingEvent(request.Customer, bookingId);
                 }

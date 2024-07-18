@@ -11,6 +11,7 @@ namespace BusinessObject.Models
         public TimeSpan? Time { get; set; }
         public int? NumberOfPeople { get; set; }
         public string? Note { get; set; }
+        public DateTime? DateBooking { get; set; }
 
         public virtual Customer? Customer { get; set; }
     }
