@@ -16,6 +16,7 @@ namespace BusinessObject.Models
         {
         }
 
+        public virtual DbSet<Booking> Bookings { get; set; } = null!;
         public virtual DbSet<Cart> Carts { get; set; } = null!;
         public virtual DbSet<CartDetail> CartDetails { get; set; } = null!;
         public virtual DbSet<Category> Categories { get; set; } = null!;
@@ -38,6 +39,20 @@ namespace BusinessObject.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Booking>(entity =>
+            {
+                entity.ToTable("Booking");
+
+                entity.Property(e => e.Date).HasColumnType("datetime");
+
+                entity.Property(e => e.Note).HasMaxLength(200);
+
+                entity.HasOne(d => d.Customer)
+                    .WithMany(p => p.Bookings)
+                    .HasForeignKey(d => d.CustomerId)
+                    .HasConstraintName("FK_Booking_Customer");
+            });
+
             modelBuilder.Entity<Cart>(entity =>
             {
                 entity.ToTable("Cart");
