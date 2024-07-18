@@ -1,6 +1,7 @@
 ﻿using BusinessObject.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Project_API.DTO;
 using System.Reflection.Metadata.Ecma335;
 
 namespace Project_API.Controllers
@@ -45,7 +46,64 @@ namespace Project_API.Controllers
             return Ok();
 
         }
-		/*
+        [HttpGet("GetUserDetail/{id}")]
+        public async Task<ActionResult<UserDTO>> GetUserDetail(int id)
+        {
+            var user = await context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound($"User with ID {id} not found.");
+            }
+
+            var userDto = new UserDTO
+            {
+                Id = user.Id,
+                Email = user.Email,
+                Phone = user.Phone,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ContactName = user.ContactName,
+                RoleId = user.RoleId,
+                Active = user.Active
+            };
+
+            return Ok(userDto);
+        }
+        [HttpPut("UpdateUser/{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDTO userUpdateDto)
+        {
+            var user = await context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound($"User with ID {id} not found.");
+            }
+
+            user.Phone = userUpdateDto.Phone ?? user.Phone;
+            user.FirstName = userUpdateDto.FirstName ?? user.FirstName;
+            user.LastName = userUpdateDto.LastName ?? user.LastName;
+            user.ContactName = userUpdateDto.ContactName ?? user.ContactName;
+
+            await context.SaveChangesAsync();
+
+            return Ok(user);
+        }
+        [HttpPost("ChangeStatusUser/{id}")]
+        public async Task<IActionResult> ChangeStatusUser(int id)
+        {
+            var user = await context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound($"User with ID {id} not found.");
+            }
+
+            
+            user.Active = !user.Active;
+
+            await context.SaveChangesAsync();
+
+            return Ok(new { Active = user.Active });
+        }
+        /*
            [HttpPost("[action]")]
         public IActionResult GetAnUserLogin(string email,string password)
         {
@@ -66,5 +124,5 @@ namespace Project_API.Controllers
         
         */
 
-	}
+    }
 }
