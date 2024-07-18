@@ -7,6 +7,7 @@ namespace BusinessObject.Models
     {
         public Customer()
         {
+            Bookings = new HashSet<Booking>();
             Orders = new HashSet<Order>();
         }
 
@@ -15,6 +16,7 @@ namespace BusinessObject.Models
         public string? Email { get; set; }
         public string? Name { get; set; }
 
+        public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Order> Orders { get; set; }
     }
 }

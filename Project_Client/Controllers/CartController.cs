@@ -16,7 +16,7 @@ namespace Project_Client.Controllers
 
         // Hàm để thêm sản phẩm vào giỏ hàng
         [HttpPost]
-        public IActionResult AddToCart(int productId, string productName, decimal price, int quantity)
+        public IActionResult AddToCart(int productId, string productName, string productImage, decimal price, int quantity)
         {
             var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
 
@@ -30,6 +30,7 @@ namespace Project_Client.Controllers
                 cart.Add(new CartItem
                 {
                     ProductId = productId,
+                    ProductImage = productImage,
                     ProductName = productName,
                     Price = price,
                     Quantity = quantity
@@ -56,6 +57,22 @@ namespace Project_Client.Controllers
             }
 
             return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult UpdateCartItem(int productId, int quantity)
+        {
+            var cart = HttpContext.Session.GetObjectFromJson<List<CartItem>>("Cart") ?? new List<CartItem>();
+
+            var cartItem = cart.FirstOrDefault(item => item.ProductId == productId);
+            if (cartItem != null)
+            {
+                cartItem.Quantity = quantity;
+                HttpContext.Session.SetObjectAsJson("Cart", cart);
+                return Json(new { success = true });
+            }
+
+            return Json(new { success = false });
         }
     }
 

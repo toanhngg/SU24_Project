@@ -1,7 +1,10 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>eCommerce Product Detail</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
@@ -103,9 +106,10 @@
     <script>
         $(document).ready(function () {
             $('.add-to-cart').click(function () {
-                var productId = '@detail?.Id'; // Lấy ID sản phẩm từ model
-                var productName = '@detail?.Name';
-                var productPrice = '@detail?.Price';
+                var productId = '@(detail?.Id)'; // Lấy ID sản phẩm từ model
+                var productName = '@Json.Serialize(detail?.Name)'; // Serialize tên sản phẩm để tránh mã hóa
+                var productPrice = '@(detail?.Price)';
+                var productImage = '@detail?.Image'; // Serialize đường dẫn hình ảnh để tránh mã hóa
 
                 if (confirm('Do you want to add ' + productName + ' to your cart?')) {
                     $.ajax({
@@ -114,6 +118,7 @@
                         data: {
                             productId: productId,
                             productName: productName,
+                            productImage: productImage,
                             price: productPrice,
                             quantity: 1
                         },

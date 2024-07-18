@@ -1,4 +1,7 @@
-﻿namespace Project_Client
+﻿using Microsoft.AspNetCore.Localization;
+using System.Globalization;
+
+namespace Project_Client
 {
     public class Program
     {
@@ -14,7 +17,18 @@
             });
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var supportedCultures = new List<CultureInfo>
+        {
+            new CultureInfo("en-US"),
+            new CultureInfo("vi-VN"),
+        };
 
+                options.DefaultRequestCulture = new RequestCulture("vi-VN");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+            });
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

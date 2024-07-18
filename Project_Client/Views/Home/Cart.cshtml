@@ -1,8 +1,7 @@
-﻿@model List<CartItem>
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>eCommerce Cart</title>
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet">
@@ -35,6 +34,25 @@
             box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset;
             vertical-align: middle;
         }
+
+        .ui-w-40 {
+            width: 40px;
+        }
+
+        .ui-bordered {
+            border: 1px solid #dee2e6;
+            border-radius: .25rem;
+        }
+
+        .mr-4 {
+            margin-right: 1.5rem;
+        }
+
+        .d-inline-flex {
+            display: inline-flex;
+            align-items: center;
+        }
+
     </style>
 </head>
 <body>
@@ -62,22 +80,24 @@
                             {
                                 foreach (var item in Model)
                                 {
-                                    <tr>
+                                    <tr data-product-id="@item.ProductId">
                                         <td class="p-4">
                                             <div class="media align-items-center">
-                                                <img src="https://bootdey.com/img/Content/avatar/avatar1.png" class="d-block ui-w-40 ui-bordered mr-4" alt="">
-                                                <div class="media-body">
-                                                    <a href="#" class="d-block text-dark">@item.ProductName</a>
-                                                    <small>
-                                                        <span class="text-muted">Quantity: @item.Quantity</span>
-                                                    </small>
+                                                <div class="media-body d-inline-flex align-items-center">
+                                                    <img src="@item.ProductImage" class="d-block ui-w-40 ui-bordered mr-4" alt="">
+                                                    <a href="#" class="d-block text-dark mr-2">@item.ProductName</a> <br>
+
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="text-right font-weight-semibold align-middle p-4">$@item.Price</td>
-                                        <td class="align-middle p-4"><input type="text" class="form-control text-center" value="@item.Quantity"></td>
-                                        <td class="text-right font-weight-semibold align-middle p-4">$@(item.Price * item.Quantity)</td>
-                                        <td class="text-center align-middle px-0"><a href="#" class="shop-tooltip close float-none text-danger" data-product-id="@item.ProductId" title="Remove">×</a></td>
+                                        <td class="text-right font-weight-semibold align-middle p-4 price">$@item.Price</td>
+                                        <td class="align-middle p-4">
+                                            <input type="number" class="form-control quantity" value="@item.Quantity">
+                                        </td>
+                                        <td class="text-right font-weight-semibold align-middle p-4 total">$@(item.Price * item.Quantity)</td>
+                                        <td class="text-center align-middle px-0">
+                                            <a href="#" class="shop-tooltip close float-none text-danger" data-product-id="@item.ProductId" title="Remove">×</a>
+                                        </td>
                                     </tr>
                                 }
                             }
@@ -101,10 +121,10 @@
                         <div class="text-right mt-4 mr-5">
                             <label class="text-muted font-weight-normal m-0">Discount</label>
                             <div class="text-large"><strong>$20</strong></div>
-                        </div>
+                        </div>  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;
                         <div class="text-right mt-4">
                             <label class="text-muted font-weight-normal m-0">Total price</label>
-                            <div class="text-large"><strong>@Model.Sum(x => x.Price * x.Quantity) - 20</strong></div>
+                            <div class="text-large"><strong><span id="totalPrice"></span></strong></div>
                         </div>
                     </div>
                 </div>
@@ -119,7 +139,55 @@
     </div>
     <script>
         $(document).ready(function () {
-            // Xử lý xóa sản phẩm khỏi giỏ hàng
+            // Function to calculate total price
+            function CalculateTotalPrice() {
+                var totalPrice = 0;
+                $('.table tbody tr').each(function () {
+                    var price = parseFloat($(this).find('.price').text().replace('$', ''));
+                    var quantity = parseInt($(this).find('.quantity').val());
+                    var total = price * quantity;
+                    $(this).find('.total').text('$' + total.toFixed(2)); // Update displayed total
+                    totalPrice += total;
+                });
+                return totalPrice - 20; // Subtract discount
+            }
+
+            // Function to initialize total price on page load
+            function InitializeTotalPrice() {
+                var totalPrice = CalculateTotalPrice();
+                $('#totalPrice').text('$' + totalPrice.toFixed(2));
+            }
+
+            // Call initialize function on page load
+            InitializeTotalPrice();
+
+            // Handle change in quantity
+            $('input.quantity').change(function () {
+                var quantity = parseInt($(this).val());
+                var price = parseFloat($(this).closest('tr').find('.price').text().replace('$', ''));
+                var total = quantity * price;
+                $(this).closest('tr').find('.total').text('$' + total.toFixed(2));
+
+                var productId = $(this).closest('tr').data('product-id');
+                $.ajax({
+                    type: 'POST',
+                    url: '/Cart/UpdateCartItem',
+                    data: { productId: productId, quantity: quantity },
+                    success: function (response) {
+                        if (response.success) {
+                            console.log('Cart updated successfully.');
+                            InitializeTotalPrice(); // Update total price after successful update
+                        } else {
+                            console.log('Failed to update cart.');
+                        }
+                    },
+                    error: function (error) {
+                        console.log('Error updating cart:', error);
+                    }
+                });
+            });
+
+            // Handle remove from cart
             $('.close').click(function () {
                 var productId = $(this).data('product-id');
                 $.ajax({
@@ -129,7 +197,7 @@
                     success: function (response) {
                         if (response.success) {
                             alert('Product removed from cart');
-                            location.reload();
+                            location.reload(); // Refresh page after successful removal
                         }
                     },
                     error: function (error) {
