@@ -10,6 +10,7 @@ namespace Project_Client.Controllers
         }
         public IActionResult Dashboard()
         {
+            ViewData["ShowHeader"] = false;
             return View();
         }
     }
