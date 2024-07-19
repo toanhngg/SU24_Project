@@ -12,5 +12,13 @@ namespace Project_Client.Controllers
         {
             return View();
         }
+        public IActionResult IndexProduct()
+        {
+            return View();
+        }
+        public IActionResult IndexCategory()
+        {
+            return View();
+        }
     }
 }
