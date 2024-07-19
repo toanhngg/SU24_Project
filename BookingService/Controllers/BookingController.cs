@@ -90,7 +90,8 @@ namespace BookingService.Controllers
             {
                 var listBooking = _context.Bookings.ToList();
                 return Ok(listBooking);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -100,7 +101,7 @@ namespace BookingService.Controllers
         {
             try
             {
-                var detailBooking = _context.Bookings.ToList().Where(x=> x.Id == id);
+                var detailBooking = _context.Bookings.ToList().Where(x => x.Id == id);
                 return Ok(detailBooking);
             }
             catch (Exception ex)
@@ -114,6 +115,15 @@ namespace BookingService.Controllers
             try
             {
                 Booking detailBooking = _context.Bookings.ToList().Where(x => x.Id == req.Id).FirstOrDefault();
+                detailBooking.Date = req.Date;
+                detailBooking.Time = req.Time;
+                detailBooking.NumberOfPeople = req.NumberOfPeople;
+                detailBooking.Note = req.Note;
+                detailBooking.DateBooking = req.DateBooking;
+                detailBooking.DateStart = req.DateStart;
+                detailBooking.DateCheckOut = req.DateCheckOut;
+                detailBooking.BookingTable = req.BookingTable;
+                detailBooking.IsCheck = req.IsCheck;
 
                 return Ok(detailBooking);
             }
