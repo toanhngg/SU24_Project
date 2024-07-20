@@ -10,12 +10,10 @@ namespace Project_Client.Controllers
         }
         public IActionResult Dashboard()
         {
-            ViewData["ShowHeader"] = false;
             return View();
         }
         public IActionResult IndexProduct()
         {
-            ViewData["ShowHeader"] = false;
             return View();
         }
         public IActionResult IndexCategory()

@@ -128,9 +128,10 @@ namespace Project_API.Controllers
 
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
-        [HttpPut("UpdateProduct/{id}")]
+        [HttpPost("UpdateProduct/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductDTO productDto)
         {
+
             if (id != productDto.Id)
             {
                 return BadRequest("Product ID mismatch");
