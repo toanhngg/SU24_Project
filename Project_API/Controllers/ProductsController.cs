@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Project_API.DTO;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Project_API.Controllers
 {
@@ -99,9 +100,18 @@ namespace Project_API.Controllers
             return Ok(productsWithCategory);
         }
         [HttpPost("AddProduct")]
-        //[Authorize]
-        public async Task<ActionResult<Product>> PostProduct([FromBody] ProductDTO productDto)
+        public async Task<ActionResult<Product>> PostProduct([FromForm] ProductDTO productDto)
         {
+            if (productDto.ImageFile != null && productDto.ImageFile.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await productDto.ImageFile.CopyToAsync(ms);
+                    var fileBytes = ms.ToArray();
+                    productDto.Image = Convert.ToBase64String(fileBytes);
+                }
+            }
+
             var product = new Product
             {
                 Name = productDto.Name,
@@ -119,8 +129,7 @@ namespace Project_API.Controllers
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
         [HttpPut("UpdateProduct/{id}")]
-        //[Authorize]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] ProductDTO productDto)
+        public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductDTO productDto)
         {
             if (id != productDto.Id)
             {
@@ -135,7 +144,15 @@ namespace Project_API.Controllers
 
             product.Name = productDto.Name;
             product.Description = productDto.Description;
-            product.Image = productDto.Image;
+            if (productDto.ImageFile != null && productDto.ImageFile.Length > 0)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    await productDto.ImageFile.CopyToAsync(ms);
+                    var fileBytes = ms.ToArray();
+                    product.Image = Convert.ToBase64String(fileBytes);
+                }
+            }
             product.Weight = productDto.Weight;
             product.CategoryId = productDto.CategoryId;
             product.Ammount = productDto.Ammount;

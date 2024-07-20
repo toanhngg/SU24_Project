@@ -13,5 +13,13 @@ namespace Project_Client.Controllers
             ViewData["ShowHeader"] = false;
             return View();
         }
+        public IActionResult IndexProduct()
+        {
+            return View();
+        }
+        public IActionResult IndexCategory()
+        {
+            return View();
+        }
     }
 }
