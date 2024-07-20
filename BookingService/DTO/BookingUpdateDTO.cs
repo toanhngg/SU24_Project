@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace BusinessObject.Models
+﻿namespace BookingService.DTO
 {
-    public partial class Booking
+    public class BookingUpdateDTO
     {
         public int Id { get; set; }
         public int? CustomerId { get; set; }
@@ -16,8 +13,5 @@ namespace BusinessObject.Models
         public DateTime? DateCheckOut { get; set; }
         public int? BookingTable { get; set; }
         public bool? IsCheck { get; set; }
-
-        public virtual Table? BookingTableNavigation { get; set; }
-        public virtual Customer? Customer { get; set; }
     }
 }
