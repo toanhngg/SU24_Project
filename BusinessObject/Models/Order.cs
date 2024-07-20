@@ -25,7 +25,6 @@ namespace BusinessObject.Models
         public bool? IsCheck { get; set; }
 
         public virtual Customer? Customer { get; set; }
-        public virtual Table? TableAdressNavigation { get; set; }
         public virtual User User { get; set; } = null!;
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
     }

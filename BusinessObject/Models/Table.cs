@@ -8,7 +8,6 @@ namespace BusinessObject.Models
         public Table()
         {
             Bookings = new HashSet<Booking>();
-            Orders = new HashSet<Order>();
         }
 
         public int Id { get; set; }
@@ -17,6 +16,5 @@ namespace BusinessObject.Models
         public int? NumberOfPeople { get; set; }
 
         public virtual ICollection<Booking> Bookings { get; set; }
-        public virtual ICollection<Order> Orders { get; set; }
     }
 }

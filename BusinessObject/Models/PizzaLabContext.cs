@@ -25,6 +25,7 @@ namespace BusinessObject.Models
         public virtual DbSet<Review> Reviews { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;
         public virtual DbSet<Table> Tables { get; set; } = null!;
+        public virtual DbSet<TableOrder> TableOrders { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -54,15 +55,15 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.Note).HasMaxLength(200);
 
-                entity.HasOne(d => d.BookingTableNavigation)
-                    .WithMany(p => p.Bookings)
-                    .HasForeignKey(d => d.BookingTable)
-                    .HasConstraintName("FK_Booking_Table");
-
                 entity.HasOne(d => d.Customer)
                     .WithMany(p => p.Bookings)
                     .HasForeignKey(d => d.CustomerId)
                     .HasConstraintName("FK_Booking_Customer");
+
+                entity.HasOne(d => d.UserCheckNavigation)
+                    .WithMany(p => p.Bookings)
+                    .HasForeignKey(d => d.UserCheck)
+                    .HasConstraintName("FK_Booking_User");
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -113,11 +114,6 @@ namespace BusinessObject.Models
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.CustomerId)
                     .HasConstraintName("FK_Order_Customer");
-
-                entity.HasOne(d => d.TableAdressNavigation)
-                    .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.TableAdress)
-                    .HasConstraintName("FK_Order_Table");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
@@ -197,6 +193,36 @@ namespace BusinessObject.Models
                 entity.Property(e => e.Name).HasMaxLength(50);
 
                 entity.Property(e => e.Position).HasMaxLength(200);
+
+                entity.HasMany(d => d.Bookings)
+                    .WithMany(p => p.Tables)
+                    .UsingEntity<Dictionary<string, object>>(
+                        "TableBooking",
+                        l => l.HasOne<Booking>().WithMany().HasForeignKey("BookingId").OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_TableBooking_Booking"),
+                        r => r.HasOne<Table>().WithMany().HasForeignKey("TableId").OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_TableBooking_Table"),
+                        j =>
+                        {
+                            j.HasKey("TableId", "BookingId");
+
+                            j.ToTable("TableBooking");
+                        });
+            });
+
+            modelBuilder.Entity<TableOrder>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("TableOrder");
+
+                entity.HasOne(d => d.Order)
+                    .WithMany()
+                    .HasForeignKey(d => d.OrderId)
+                    .HasConstraintName("FK_TableOrder_Order");
+
+                entity.HasOne(d => d.Table)
+                    .WithMany()
+                    .HasForeignKey(d => d.TableId)
+                    .HasConstraintName("FK_TableOrder_Table");
             });
 
             modelBuilder.Entity<User>(entity =>
