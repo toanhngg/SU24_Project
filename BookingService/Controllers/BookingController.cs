@@ -10,6 +10,7 @@ using System.Net.Http.Headers;
 using System.Numerics;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookingService.Controllers
 {
@@ -33,15 +34,35 @@ namespace BookingService.Controllers
         {
             try
             {
-                // 1. Call Customer Service to save customer
                 int customerResponse = await SaveCustomer(request.Customer);
                 if (TimeSpan.TryParse(request.Time, out TimeSpan timeSpan))
                 {
                     if (request.Date < DateTime.Now)
                     {
-                        return BadRequest("Booking date cannot be in the past.");
+                        return BadRequest(new { title = "Không được đặt bàn quá khứ." });
                     }
 
+
+                    TimeSpan bookingDuration = TimeSpan.FromHours(2);
+
+                    // Tính DateStart và DateCheckOut cho booking mới
+                    DateTime dateStart = request.Date.Value + timeSpan;
+                    DateTime dateCheckOut = dateStart + bookingDuration;
+
+                    // Kiểm tra xem có booking nào trùng lặp không
+                    var existingBookings = await _context.Bookings
+                        .Where(b => b.BookingTable == request.BookingTable &&
+                                    ((b.DateStart < dateCheckOut && b.DateCheckOut > dateStart) || // A < C < B
+                                     (dateStart < b.DateStart && (dateCheckOut - dateStart) < bookingDuration) || // C < A < 2h
+                                     dateStart > b.DateCheckOut)) // C > B
+                        .ToListAsync();
+
+                    if (existingBookings.Any())
+                    {
+                        return BadRequest(new { title = "Hết bàn vào thời gian này." });
+                    }
+
+                    // Lưu booking nếu không có trùng lặp
                     var bookingId = await SaveBooking(new Booking
                     {
                         CustomerId = customerResponse,
@@ -54,16 +75,64 @@ namespace BookingService.Controllers
                     });
                     PublishBookingEvent(request.Customer, bookingId);
                 }
+                return Ok(new { title = "Booking successfully confirmed." });
 
-                // 3. Publish booking event to RabbitMQ
-                // 2. Publish booking event to RabbitMQ
-                return Ok("Booking successfully confirmed.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return BadRequest(new { title = $"Internal server error: {ex.Message}" });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            try
+            {
+                var listBooking = _context.Bookings.ToList();
+                return Ok(listBooking);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("getDetailById/{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            try
+            {
+                var detailBooking = _context.Bookings.ToList().Where(x => x.Id == id);
+                return Ok(detailBooking);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("update/{id}")]
+        public async Task<IActionResult> updateBooking([FromBody] BookingUpdateDTO req)
+        {
+            try
+            {
+                Booking detailBooking = _context.Bookings.ToList().Where(x => x.Id == req.Id).FirstOrDefault();
+                detailBooking.Date = req.Date;
+                detailBooking.Time = req.Time;
+                detailBooking.NumberOfPeople = req.NumberOfPeople;
+                detailBooking.Note = req.Note;
+                detailBooking.DateBooking = req.DateBooking;
+                detailBooking.DateStart = req.DateStart;
+                detailBooking.DateCheckOut = req.DateCheckOut;
+                detailBooking.BookingTable = req.BookingTable;
+                detailBooking.IsCheck = req.IsCheck;
+
+                return Ok(detailBooking);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         private async Task<int> SaveBooking(Booking booking)
         {
             _context.Bookings.Add(booking);
@@ -77,10 +146,8 @@ namespace BookingService.Controllers
                 var response = await client.PostAsJsonAsync("https://localhost:7135/api/Customer", customer);
                 response.EnsureSuccessStatusCode(); // Ensure success before reading content
 
-                // Read response content as JSON and specify the type
                 var content = await response.Content.ReadFromJsonAsync<Customer>();
 
-                // Return the id of the customer (assuming CustomerDTO has an Id property)
                 return content.Id;
             }
         }
@@ -98,10 +165,8 @@ namespace BookingService.Controllers
             using (var connection = factory.CreateConnection())
             using (var channel = connection.CreateModel())
             {
-                // Declare an exchange
                 channel.ExchangeDeclare(exchange: "booking_exchange", type: ExchangeType.Direct);
 
-                // Serialize message
                 var bookingMessage = new EmailRequest
                 {
                     CustomerName = customer.Name,
@@ -112,7 +177,6 @@ namespace BookingService.Controllers
                 var messageBody = JsonSerializer.Serialize(bookingMessage);
                 var body = Encoding.UTF8.GetBytes(messageBody);
 
-                // Publish message to RabbitMQ
                 channel.BasicPublish(exchange: "booking_exchange",
                                      routingKey: "booking",
                                      basicProperties: null,
@@ -120,30 +184,4 @@ namespace BookingService.Controllers
             }
         }
     }
-    //[HttpPost]
-    //    public IActionResult BookTable([FromBody] BookingDTO request)
-    //    {
-    //        var factory = new ConnectionFactory() { HostName = "localhost" };
-    //        using (var connection = factory.CreateConnection())
-    //        using (var channel = connection.CreateModel())
-    //        {
-    //            channel.QueueDeclare(queue: "booking_queue",
-    //                                 durable: false,
-    //                                 exclusive: false,
-    //                                 autoDelete: false,
-    //                                 arguments: null);
-
-    //    string message = $"{request.Date},{request.Time},{request.Customer.Name},{request.NumberOfPeople},{request.Note}";
-    //            var body = Encoding.UTF8.GetBytes(message);
-
-    //            channel.BasicPublish(exchange: "",
-    //                                 routingKey: "booking_queue",
-    //                                 basicProperties: null,
-    //                                 body: body);
-    //            Console.WriteLine(" [x] Sent {0}", message);
-    //        }
-
-    //        return Ok(new { Status = "Table booked successfully!" });
-    //    }
-    //}
 }

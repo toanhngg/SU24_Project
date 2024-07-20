@@ -17,7 +17,7 @@ namespace Project_API.DTO
         public DateTime? ShippedDate { get; set; }
         public decimal? Freight { get; set; }
 
-        public string TableAdress { get; set; } = null!;
+        public int TableAdress { get; set; }
         [JsonIgnore]
         public bool? IsCart { get; set; }
         public virtual CustomerDTO? Customer { get; set; }
