@@ -17,8 +17,6 @@ namespace BusinessObject.Models
         }
 
         public virtual DbSet<Booking> Bookings { get; set; } = null!;
-        public virtual DbSet<Cart> Carts { get; set; } = null!;
-        public virtual DbSet<CartDetail> CartDetails { get; set; } = null!;
         public virtual DbSet<Category> Categories { get; set; } = null!;
         public virtual DbSet<Customer> Customers { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
@@ -26,6 +24,7 @@ namespace BusinessObject.Models
         public virtual DbSet<Product> Products { get; set; } = null!;
         public virtual DbSet<Review> Reviews { get; set; } = null!;
         public virtual DbSet<Role> Roles { get; set; } = null!;
+        public virtual DbSet<Table> Tables { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -45,36 +44,25 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.Date).HasColumnType("datetime");
 
+                entity.Property(e => e.DateBooking).HasColumnType("datetime");
+
+                entity.Property(e => e.DateCheckOut).HasColumnType("datetime");
+
+                entity.Property(e => e.DateStart).HasColumnType("datetime");
+
+                entity.Property(e => e.IsCheck).HasColumnName("isCheck");
+
                 entity.Property(e => e.Note).HasMaxLength(200);
+
+                entity.HasOne(d => d.BookingTableNavigation)
+                    .WithMany(p => p.Bookings)
+                    .HasForeignKey(d => d.BookingTable)
+                    .HasConstraintName("FK_Booking_Table");
 
                 entity.HasOne(d => d.Customer)
                     .WithMany(p => p.Bookings)
                     .HasForeignKey(d => d.CustomerId)
                     .HasConstraintName("FK_Booking_Customer");
-            });
-
-            modelBuilder.Entity<Cart>(entity =>
-            {
-                entity.ToTable("Cart");
-
-                entity.Property(e => e.Freight).HasColumnType("money");
-
-                entity.Property(e => e.OrderDate).HasColumnType("datetime");
-            });
-
-            modelBuilder.Entity<CartDetail>(entity =>
-            {
-                entity.HasKey(e => new { e.CartId, e.ProductId });
-
-                entity.ToTable("CartDetail");
-
-                entity.Property(e => e.Price).HasColumnType("money");
-
-                entity.HasOne(d => d.Cart)
-                    .WithMany(p => p.CartDetails)
-                    .HasForeignKey(d => d.CartId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CartDetail_Cart");
             });
 
             modelBuilder.Entity<Category>(entity =>
@@ -109,6 +97,8 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.IsCart).HasColumnName("isCart");
 
+                entity.Property(e => e.IsCheck).HasColumnName("isCheck");
+
                 entity.Property(e => e.Note).HasMaxLength(100);
 
                 entity.Property(e => e.OrderDate).HasColumnType("datetime");
@@ -119,14 +109,15 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.ShippedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.TableAdress)
-                    .HasMaxLength(10)
-                    .IsFixedLength();
-
                 entity.HasOne(d => d.Customer)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.CustomerId)
                     .HasConstraintName("FK_Order_Customer");
+
+                entity.HasOne(d => d.TableAdressNavigation)
+                    .WithMany(p => p.Orders)
+                    .HasForeignKey(d => d.TableAdress)
+                    .HasConstraintName("FK_Order_Table");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Orders)
@@ -197,6 +188,15 @@ namespace BusinessObject.Models
                 entity.ToTable("Role");
 
                 entity.Property(e => e.Name).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<Table>(entity =>
+            {
+                entity.ToTable("Table");
+
+                entity.Property(e => e.Name).HasMaxLength(50);
+
+                entity.Property(e => e.Position).HasMaxLength(200);
             });
 
             modelBuilder.Entity<User>(entity =>

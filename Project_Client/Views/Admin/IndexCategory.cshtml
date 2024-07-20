@@ -1,0 +1,205 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css">
+
+<h2>Categories</h2>
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-6 offset-md-6">
+                <button class="btn btn-primary float-right" id="btnAdd">+ Add</button>
+            </div>
+        </div>
+    </div>
+    <div id="category-container">
+        <table class="table table-striped table-bordered" style="width:100%" id="tblCategory">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Category Id</th>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label for="addCategoryName">Category Name</label>
+                        <input type="text" class="form-control" id="addCategoryName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="addCategoryDescription">Description</label>
+                        <input type="text" class="form-control" id="addCategoryDescription" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveCategory">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm">
+                    <input type="hidden" id="editCategoryId">
+                    <div class="form-group">
+                        <label for="editCategoryName">Category Name</label>
+                        <input type="text" class="form-control" id="editCategoryName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategoryDescription">Description</label>
+                        <input type="text" class="form-control" id="editCategoryDescription" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="updateCategory">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $(".modal .close, .modal button.btn-secondary").click(function () {
+            $(this).closest(".modal").modal("hide");
+        });
+
+        // Load categories
+        loadCategoryList();
+
+        // Add Category
+        $("#btnAdd").click(function () {
+            $("#addCategoryModal").modal("show");
+        });
+
+        $("#saveCategory").click(function () {
+            var category = {
+                categoryName: $("#addCategoryName").val(),
+                description: $("#addCategoryDescription").val()
+            };
+
+            $.ajax({
+                url: 'https://localhost:7135/api/Category',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(category),
+                success: function (response) {
+                    $("#addCategoryModal").modal("hide");
+                    loadCategoryList();
+                }
+            });
+        });
+
+        // Edit Category
+        $(document).on("click", ".btnEdit", function () {
+            var categoryId = $(this).data("id");
+            $.ajax({
+                url: 'https://localhost:7135/api/Category/GetCategory/' + categoryId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (category) {
+                    $("#editCategoryId").val(category.id);
+                    $("#editCategoryName").val(category.categoryName);
+                    $("#editCategoryDescription").val(category.description);
+                    $("#editCategoryModal").modal("show");
+                }
+            });
+        });
+
+        $("#updateCategory").click(function () {
+            var categoryId = $("#editCategoryId").val();
+            var category = {
+                id: categoryId,
+                categoryName: $("#editCategoryName").val(),
+                description: $("#editCategoryDescription").val()
+            };
+
+            $.ajax({
+                url: 'https://localhost:7135/api/Category/Update/' + categoryId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(category),
+                success: function (response) {
+                    $("#editCategoryModal").modal("hide");
+                    loadCategoryList();
+                }
+            });
+        });
+
+
+        // Delete Category
+        $(document).on("click", ".btnDelete", function () {
+            if (confirm("Are you sure you want to delete this category?")) {
+                var categoryId = $(this).data("id");
+
+                $.ajax({
+                    url: 'https://localhost:7135/api/Category/' + categoryId,
+                    type: 'DELETE',
+                    success: function (response) {
+                        loadCategoryList();
+                    }
+                });
+            }
+        });
+
+        function loadCategoryList() {
+            $.ajax({
+                url: 'https://localhost:7135/api/Category',
+                type: 'GET',
+                dataType: 'json',
+                success: function (categories) {
+                    var categoryContainer = $('#category-container').find('tbody');
+                    categoryContainer.empty();
+
+                    // Display category data in the table
+                    $.each(categories, function (index, category) {
+                        var row = '<tr>' +
+                            '<td>' + category.id + '</td>' +
+                            '<td>' + category.categoryName + '</td>' +
+                            '<td>' + category.description + '</td>' +
+                            '<td>' +
+                                '<button class="btn btn-info btnEdit" data-id="' + category.id + '">Edit</button>' +
+                                ' <button class="btn btn-danger btnDelete" data-id="' + category.id + '">Delete</button>' +
+                            '</td>' +
+                            '</tr>';
+                        categoryContainer.append(row);
+                    });
+                }
+            });
+        }
+    });
+</script>

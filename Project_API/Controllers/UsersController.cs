@@ -70,7 +70,7 @@ namespace Project_API.Controllers
             return Ok(userDto);
         }
         [HttpPut("UpdateUser/{id}")]
-        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDTO userUpdateDto)
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO userUpdateDto)
         {
             var user = await context.Users.FindAsync(id);
             if (user == null)

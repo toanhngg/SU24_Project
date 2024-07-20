@@ -19,11 +19,13 @@ namespace BusinessObject.Models
         public decimal? Freight { get; set; }
         public string? ShipAddress { get; set; }
         public bool? IsCart { get; set; }
-        public string? TableAdress { get; set; }
+        public int? TableAdress { get; set; }
         public int? CustomerId { get; set; }
         public string? Note { get; set; }
+        public bool? IsCheck { get; set; }
 
         public virtual Customer? Customer { get; set; }
+        public virtual Table? TableAdressNavigation { get; set; }
         public virtual User User { get; set; } = null!;
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }
     }
