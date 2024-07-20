@@ -4,6 +4,8 @@
 
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <h2>Products</h2>
 <div class="card">
@@ -140,6 +142,7 @@
 
 <script>
     $(document).ready(function () {
+        // Các hàm xử lý modal
         $(".modal .close, .modal button.btn-secondary").click(function () {
             $(this).closest(".modal").modal("hide");
         });
@@ -178,13 +181,12 @@
 
         $(document).on("click", ".btnEdit", function () {
             var productId = $(this).data("id");
-            console.log("Product ID: ", productId);
+
             $.ajax({
                 url: 'https://localhost:7135/api/Products/' + productId,
                 type: 'GET',
                 dataType: 'json',
                 success: function (product) {
-                    console.log("Product data: ", product);
                     $("#editProductId").val(product.id);
                     $("#editProductName").val(product.name);
                     $("#editProductDescription").val(product.description);
@@ -254,8 +256,6 @@
             }
         });
 
-        
-
         function loadProductList() {
             $.ajax({
                 url: 'https://localhost:7135/api/Products',
@@ -289,5 +289,6 @@
             });
         }
     });
+
 
 </script>

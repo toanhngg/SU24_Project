@@ -20,5 +20,10 @@ namespace Project_Client.Controllers
         {
             return View();
         }
+
+        public IActionResult IndexUser()
+        {
+            return View();
+        }
     }
 }
