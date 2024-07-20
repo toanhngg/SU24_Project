@@ -308,6 +308,8 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script>
+        // Lấy đường dẫn URL
+
         async function fetchBookings() {
             try {
                 const response = await fetch('https://localhost:7130/api/Booking');
@@ -347,13 +349,14 @@
 
         document.getElementById('dashboardLink').addEventListener('click', async function () {
             const bookingTable = document.getElementById('bookingTable');
-            if (bookingTable.style.display === 'none') {
+            if (bookingTable.style.display === 'none' || bookingTable.style.display === '') {
                 bookingTable.style.display = 'block';
                 await populateBookingTable();
             } else {
                 bookingTable.style.display = 'none';
             }
         });
+
         let tablesData = [];
 
         document.addEventListener('DOMContentLoaded', () => {
