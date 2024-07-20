@@ -16,9 +16,9 @@ namespace BusinessObject.Models
         public string Description { get; set; } = null!;
         public decimal Price { get; set; }
         public double Weight { get; set; }
-        public string Image { get; set; } = null!;
         public int? Ammount { get; set; }
         public int CategoryId { get; set; }
+        public string? Image { get; set; }
 
         public virtual Category Category { get; set; } = null!;
         public virtual ICollection<OrderDetail> OrderDetails { get; set; }

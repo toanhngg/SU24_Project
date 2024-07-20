@@ -9,4 +9,6 @@ public class BookingDTO
     public string Time { get; set; }  // Change to string
     public int? NumberOfPeople { get; set; }
     public string? Note { get; set; }
+    public int? BookingTable { get; set; }
+
 }
