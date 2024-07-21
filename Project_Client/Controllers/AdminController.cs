@@ -92,7 +92,6 @@ namespace Project_Client.Controllers
         }
         public IActionResult IndexCategory()
         {
-            ViewData["ShowHeader"] = false;
             return View();
         }
 

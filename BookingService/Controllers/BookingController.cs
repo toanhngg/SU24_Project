@@ -207,7 +207,7 @@ namespace BookingService.Controllers
                     booking.DateStart,
                     booking.DateCheckOut,
                     BookingTable = string.Join(", ", booking.Tables.Select(t => t.Name)), // Concatenate table names
-                   // booking.IsCheck
+                                                                                          // booking.IsCheck
                 }).ToList();
 
                 return Ok(detailBookings);
@@ -301,7 +301,7 @@ namespace BookingService.Controllers
                 var detailBooking = await _context.Bookings
                     .Include(b => b.Tables) // Include related Tables for updating
                     .FirstOrDefaultAsync(x => x.Id == req.Id);
-               
+
                 // Cập nhật thông tin booking
                 detailBooking.Note = req.Note;
                 detailBooking.DateStart = req.DateStart;

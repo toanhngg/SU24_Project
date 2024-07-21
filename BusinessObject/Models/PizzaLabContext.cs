@@ -96,6 +96,8 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.Freight).HasColumnType("money");
 
+                entity.Property(e => e.IsCart).HasColumnName("isCart");
+
                 entity.Property(e => e.IsCheck).HasColumnName("isCheck");
 
                 entity.Property(e => e.Note).HasMaxLength(100);

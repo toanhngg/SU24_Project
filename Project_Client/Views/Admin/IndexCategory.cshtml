@@ -1,355 +1,234 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <title>Dashboard - SB Admin</title>
-    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
-    <link href="~/css/styles.css" rel="stylesheet" />
-    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-    <style>
-        #bookingTable {
-            display: none; /* Ẩn bảng mặc định */
-        }
-        /* Bố cục và kiểu dáng cho bảng */
-        #bookingTable {
-            display: none; /* Ẩn bảng mặc định */
-            width: 100%; /* Đảm bảo bảng chiếm toàn bộ chiều rộng của container */
-            border-collapse: collapse; /* Hợp nhất các đường viền của ô */
-        }
+﻿@{
+    Layout = "_AdminLayout";
+}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<h2>Categories</h2>
+    <div class="container-fluid px-4">
+        <div class="card mb-4">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" id="searchCategoryName" class="form-control" placeholder="Search by category name">
+            </div>
+            <div class="col-md-6">
+                <button class="btn btn-primary float-right" id="btnSearch">Search</button>
+                <button class="btn btn-primary float-right" id="btnAdd" style="margin-right: 10px;">+ Add</button>
+            </div>
+        </div>
+    </div>
+    <div id="category-container">
+        <table class="table table-striped table-bordered" style="width:100%" id="tblCategory">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Category Id</th>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
 
-            /* Định dạng tiêu đề bảng */
-            #bookingTable thead {
-                background-color: #343a40; /* Màu nền cho tiêu đề bảng */
-                color: #ffffff; /* Màu chữ cho tiêu đề bảng */
-            }
-
-            #bookingTable th {
-                padding: 12px 15px; /* Khoảng cách xung quanh nội dung tiêu đề */
-                text-align: left; /* Căn trái nội dung tiêu đề */
-                border-bottom: 1px solid #dee2e6; /* Đường viền dưới tiêu đề bảng */
-            }
-
-            /* Định dạng các hàng trong bảng */
-            #bookingTable tbody tr:nth-child(even) {
-                background-color: #f8f9fa; /* Màu nền cho hàng chẵn */
-            }
-
-            #bookingTable tbody tr:nth-child(odd) {
-                background-color: #ffffff; /* Màu nền cho hàng lẻ */
-            }
-
-            #bookingTable td {
-                padding: 12px 15px; /* Khoảng cách xung quanh nội dung ô */
-                border-bottom: 1px solid #dee2e6; /* Đường viền dưới các ô dữ liệu */
-            }
-
-            /* Định dạng bảng khi không có dữ liệu */
-            #bookingTable tbody tr.empty-row td {
-                text-align: center; /* Căn giữa nội dung khi không có dữ liệu */
-                color: #6c757d; /* Màu chữ cho hàng không có dữ liệu */
-            }
-    </style>
-</head>
-<body class="sb-nav-fixed">
-    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-        <a class="navbar-brand ps-3" href="index.html">Start Bootstrap</a>
-        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!">
-            <i class="fas fa-bars"></i>
-        </button>
-        <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
-            <div class="input-group">
-                <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
-                <button class="btn btn-primary" id="btnNavbarSearch" type="button">
-                    <i class="fas fa-search"></i>
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-        </form>
-        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fas fa-user fa-fw"></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                    <li><a class="dropdown-item" href="#!">Settings</a></li>
-                    <li><a class="dropdown-item" href="#!">Activity Log</a></li>
-                    <li><hr class="dropdown-divider" /></li>
-                    <li><a class="dropdown-item" href="#!">Logout</a></li>
-                </ul>
-            </li>
-        </ul>
-    </nav>
-    <div id="layoutSidenav">
-        <div id="layoutSidenav_nav">
-            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
-                <div class="sb-sidenav-menu">
-                    <div class="nav">
-                        <div class="sb-sidenav-menu-heading">Core</div>
-                        <a class="nav-link" href="dashboard" id="dashboardLink">
-                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Dashboard
-                        </a>
-                        <div class="sb-sidenav-menu-heading">Interface</div>
-                        <a class="nav-link" id="productLink">
-                            <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                            Product
-                        </a>
-                        <a class="nav-link" href="layout-sidenav-light.html">
-                            <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                            Light Sidenav
-                        </a>
-                        <div class="sb-sidenav-menu-heading">Addons</div>
-                        <a class="nav-link" href="charts.html">
-                            <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
-                            Charts
-                        </a>
-                        <a class="nav-link" href="tables.html">
-                            <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
-                            Tables
-                        </a>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="form-group">
+                        <label for="addCategoryName">Category Name</label>
+                        <input type="text" class="form-control" id="addCategoryName" required>
                     </div>
-                </div>
-                <div class="sb-sidenav-footer">
-                    <div class="small">Logged in as:</div>
-                    Start Bootstrap
-                </div>
-            </nav>
+                    <div class="form-group">
+                        <label for="addCategoryDescription">Description</label>
+                        <input type="text" class="form-control" id="addCategoryDescription" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveCategory">Save</button>
+            </div>
         </div>
+    </div>
+</div>
 
-        <div id="layoutSidenav_content">
-            <main>
-                <h2>Categories</h2>
-                <div class="card">
-                    <div class="card-header">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <input type="text" id="searchCategoryName" class="form-control" placeholder="Search by category name">
-                            </div>
-                            <div class="col-md-6">
-                                <button class="btn btn-primary float-right" id="btnSearch">Search</button>
-                                <button class="btn btn-primary float-right" id="btnAdd" style="margin-right: 10px;">+ Add</button>
-                            </div>
-                        </div>
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm">
+                    <input type="hidden" id="editCategoryId">
+                    <div class="form-group">
+                        <label for="editCategoryName">Category Name</label>
+                        <input type="text" class="form-control" id="editCategoryName" required>
                     </div>
-                    <div id="category-container">
-                        <table class="table table-striped table-bordered" style="width:100%" id="tblCategory">
-                            <thead class="thead-dark">
-                                <tr>
-                                    <th>Category Id</th>
-                                    <th>Category Name</th>
-                                    <th>Description</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <div class="form-group">
+                        <label for="editCategoryDescription">Description</label>
+                        <input type="text" class="form-control" id="editCategoryDescription" required>
                     </div>
-                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="updateCategory">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script>
+    $(document).ready(function () {
+        $(".modal .close, .modal button.btn-secondary").click(function () {
+            $(this).closest(".modal").modal("hide");
+        });
 
-                <!-- Add Category Modal -->
-                <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="addCategoryForm">
-                                    <div class="form-group">
-                                        <label for="addCategoryName">Category Name</label>
-                                        <input type="text" class="form-control" id="addCategoryName" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="addCategoryDescription">Description</label>
-                                        <input type="text" class="form-control" id="addCategoryDescription" required>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary" id="saveCategory">Save</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        // Load categories
+        loadCategoryList();
 
-                <!-- Edit Category Modal -->
-                <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="editCategoryForm">
-                                    <input type="hidden" id="editCategoryId">
-                                    <div class="form-group">
-                                        <label for="editCategoryName">Category Name</label>
-                                        <input type="text" class="form-control" id="editCategoryName" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="editCategoryDescription">Description</label>
-                                        <input type="text" class="form-control" id="editCategoryDescription" required>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary" id="updateCategory">Update</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>               
+        // Add Category
+        $("#btnAdd").click(function () {
+            $("#addCategoryModal").modal("show");
+        });
 
-                <script>
-                    $(document).ready(function () {
-                        $(".modal .close, .modal button.btn-secondary").click(function () {
-                            $(this).closest(".modal").modal("hide");
-                        });
+        $("#saveCategory").click(function () {
+            var category = {
+                categoryName: $("#addCategoryName").val(),
+                description: $("#addCategoryDescription").val()
+            };
 
-                        // Load categories
-                        loadCategoryList();
+            $.ajax({
+                url: 'https://localhost:7135/api/Category/AddCategory',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(category),
+                success: function (response) {
+                    $("#addCategoryModal").modal("hide");
+                    loadCategoryList();
+                }
+            });
+        });
 
-                        // Add Category
-                        $("#btnAdd").click(function () {
-                            $("#addCategoryModal").modal("show");
-                        });
+        // Edit Category
+        $(document).on("click", ".btnEdit", function () {
+            var categoryId = $(this).data("id");
+            $.ajax({
+                url: 'https://localhost:7135/api/Category/GetCategory/' + categoryId,
+                type: 'GET',
+                dataType: 'json',
+                success: function (category) {
+                    $("#editCategoryId").val(category.id);
+                    $("#editCategoryName").val(category.categoryName);
+                    $("#editCategoryDescription").val(category.description);
+                    $("#editCategoryModal").modal("show");
+                }
+            });
+        });
 
-                        $("#saveCategory").click(function () {
-                            var category = {
-                                categoryName: $("#addCategoryName").val(),
-                                description: $("#addCategoryDescription").val()
-                            };
+        $("#updateCategory").click(function () {
+            var categoryId = $("#editCategoryId").val();
+            var category = {
+                id: categoryId,
+                categoryName: $("#editCategoryName").val(),
+                description: $("#editCategoryDescription").val()
+            };
 
-                            $.ajax({
-                                url: 'https://localhost:7135/api/Category/AddCategory',
-                                type: 'POST',
-                                contentType: 'application/json',
-                                data: JSON.stringify(category),
-                                success: function (response) {
-                                    $("#addCategoryModal").modal("hide");
-                                    loadCategoryList();
-                                }
+            $.ajax({
+                url: 'https://localhost:7135/api/Category/Update/' + categoryId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(category),
+                success: function (response) {
+                    $("#editCategoryModal").modal("hide");
+                    loadCategoryList();
+                }
+            });
+        });
+
+        // Search Category
+        $("#btnSearch").click(function () {
+            var searchCategoryName = $("#searchCategoryName").val();
+            if (searchCategoryName.trim() !== "") {
+                $.ajax({
+                    url: 'https://localhost:7135/api/Category/Search/' + encodeURIComponent(searchCategoryName),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (categories) {
+                        var categoryContainer = $('#category-container').find('tbody');
+                        categoryContainer.empty();
+
+                        if (categories.length > 0) {
+                            // Display category data in the table
+                            $.each(categories, function (index, category) {
+                                var row = '<tr>' +
+                                    '<td>' + category.id + '</td>' +
+                                    '<td>' + category.categoryName + '</td>' +
+                                    '<td>' + category.description + '</td>' +
+                                    '<td>' +
+                                    '<button class="btn btn-info btnEdit" data-id="' + category.id + '">Edit</button>' +
+                                    '</td>' +
+                                    '</tr>';
+                                categoryContainer.append(row);
                             });
-                        });
+                        } else {
+                            // Display alert if no categories found
+                            alert('No categories found');
 
-                        // Edit Category
-                        $(document).on("click", ".btnEdit", function () {
-                            var categoryId = $(this).data("id");
-                            $.ajax({
-                                url: 'https://localhost:7135/api/Category/GetCategory/' + categoryId,
-                                type: 'GET',
-                                dataType: 'json',
-                                success: function (category) {
-                                    $("#editCategoryId").val(category.id);
-                                    $("#editCategoryName").val(category.categoryName);
-                                    $("#editCategoryDescription").val(category.description);
-                                    $("#editCategoryModal").modal("show");
-                                }
-                            });
-                        });
-
-                        $("#updateCategory").click(function () {
-                            var categoryId = $("#editCategoryId").val();
-                            var category = {
-                                id: categoryId,
-                                categoryName: $("#editCategoryName").val(),
-                                description: $("#editCategoryDescription").val()
-                            };
-
-                            $.ajax({
-                                url: 'https://localhost:7135/api/Category/Update/' + categoryId,
-                                type: 'PUT',
-                                contentType: 'application/json',
-                                data: JSON.stringify(category),
-                                success: function (response) {
-                                    $("#editCategoryModal").modal("hide");
-                                    loadCategoryList();
-                                }
-                            });
-                        });
-
-                        // Search Category
-                        $("#btnSearch").click(function () {
-                            var searchCategoryName = $("#searchCategoryName").val();
-                            if (searchCategoryName.trim() !== "") {
-                                $.ajax({
-                                    url: 'https://localhost:7135/api/Category/Search/' + encodeURIComponent(searchCategoryName),
-                                    type: 'GET',
-                                    dataType: 'json',
-                                    success: function (categories) {
-                                        var categoryContainer = $('#category-container').find('tbody');
-                                        categoryContainer.empty();
-
-                                        if (categories.length > 0) {
-                                            // Display category data in the table
-                                            $.each(categories, function (index, category) {
-                                                var row = '<tr>' +
-                                                    '<td>' + category.id + '</td>' +
-                                                    '<td>' + category.categoryName + '</td>' +
-                                                    '<td>' + category.description + '</td>' +
-                                                    '<td>' +
-                                                    '<button class="btn btn-info btnEdit" data-id="' + category.id + '">Edit</button>' +
-                                                    '</td>' +
-                                                    '</tr>';
-                                                categoryContainer.append(row);
-                                            });
-                                        } else {
-                                            // Display alert if no categories found
-                                            alert('No categories found');
-                                            
-                                        }
-                                    },
-                                    error: function (xhr) {
-                                        console.log("Error occurred while searching categories", xhr);
-                                        if (xhr.status === 404) {
-                                            alert('No categories found: ' + xhr.responseJSON.title);
-                                        } else {
-                                            alert('Error occurred while searching categories: ' + xhr.responseJSON.title);
-                                        }
-                                    }
-                                });
-                            } else {
-                                // Load all categories if search input is empty
-                                loadCategoryList();
-                            }
-                        });
-
-                        function loadCategoryList() {
-                            $.ajax({
-                                url: 'https://localhost:7135/api/Category',
-                                type: 'GET',
-                                dataType: 'json',
-                                success: function (categories) {
-                                    var categoryContainer = $('#category-container').find('tbody');
-                                    categoryContainer.empty();
-
-                                    // Display category data in the table
-                                    $.each(categories, function (index, category) {
-                                        var row = '<tr>' +
-                                            '<td>' + category.id + '</td>' +
-                                            '<td>' + category.categoryName + '</td>' +
-                                            '<td>' + category.description + '</td>' +
-                                            '<td>' +
-                                            '<button class="btn btn-info btnEdit" data-id="' + category.id + '">Edit</button>' +
-                                            '</td>' +
-                                            '</tr>';
-                                        categoryContainer.append(row);
-                                    });
-                                }
-                            });
                         }
+                    },
+                    error: function (xhr) {
+                        console.log("Error occurred while searching categories", xhr);
+                        if (xhr.status === 404) {
+                            alert('No categories found: ' + xhr.responseJSON.title);
+                        } else {
+                            alert('Error occurred while searching categories: ' + xhr.responseJSON.title);
+                        }
+                    }
+                });
+            } else {
+                // Load all categories if search input is empty
+                loadCategoryList();
+            }
+        });
+
+        function loadCategoryList() {
+            $.ajax({
+                url: 'https://localhost:7135/api/Category',
+                type: 'GET',
+                dataType: 'json',
+                success: function (categories) {
+                    var categoryContainer = $('#category-container').find('tbody');
+                    categoryContainer.empty();
+
+                    // Display category data in the table
+                    $.each(categories, function (index, category) {
+                        var row = '<tr>' +
+                            '<td>' + category.id + '</td>' +
+                            '<td>' + category.categoryName + '</td>' +
+                            '<td>' + category.description + '</td>' +
+                            '<td>' +
+                            '<button class="btn btn-info btnEdit" data-id="' + category.id + '">Edit</button>' +
+                            '</td>' +
+                            '</tr>';
+                        categoryContainer.append(row);
                     });
-                </script>
-</body>
-</html>
+                }
+            });
+        }
+    });
+</script>

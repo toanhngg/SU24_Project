@@ -1,4 +1,4 @@
-﻿@{
+﻿﻿@{
     Layout = "_AdminLayout";
 }
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -71,7 +71,7 @@
     const recordsPerPage = 8;
     let ordersData = [];
     let currentOrderId = null;
-   let currentFreight = null;
+    let currentFreight = null;
     function loadOrders(page = 1) {
         fetch('https://localhost:7135/api/Order')
             .then(response => response.json())
@@ -97,16 +97,16 @@
         orders.forEach(order => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${order.id}</td>
-                <td>${new Date(order.orderDate).toLocaleDateString()}</td>
-                <td>${order.status ? 'Completed' : 'Pending'}</td>
-                <td>${order.freight}</td>
-                <td>${order.tableAdress}</td>
-                <td>${order.customerName}</td>
-                <td>
-                            <button class="btn btn-info" onclick="loadOrderDetails(${order.id}, ${order.freight})">View Details</button>
-                    </td>
-            `;
+                    <td>${order.id}</td>
+                    <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                    <td>${order.isCheck ? 'Completed' : 'Pending'}</td>
+                    <td>${order.freight}</td>
+                    <td>${order.tableAdress}</td>
+                    <td>${order.customerName}</td>
+                    <td>
+                                <button class="btn btn-info" onclick="loadOrderDetails(${order.id}, ${order.freight})">View Details</button>
+                        </td>
+                `;
             ordersBody.appendChild(row);
         });
     }
@@ -139,11 +139,11 @@
                 order.orderDetails.forEach(detail => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${detail.productId}</td>
-                        <td>${detail.quantity}</td>
-                        <td>${detail.price}</td>
-                        <td>${detail.productName}</td>
-                    `;
+                            <td>${detail.productId}</td>
+                            <td>${detail.quantity}</td>
+                            <td>${detail.price}</td>
+                            <td>${detail.productName}</td>
+                        `;
                     detailsBody.appendChild(row);
                 });
 
@@ -155,7 +155,7 @@
                 currentFreight = freight;
 
                 // Check if status is 0 or null
-                if (order.status === false || order.status === null) {
+                if (order.isCheck === 0 || order.isCheck === null) {
                     document.getElementById('paymentButton').style.display = 'block';
                 } else {
                     document.getElementById('paymentButton').style.display = 'none';

@@ -59,7 +59,7 @@ namespace Project_API.Controllers
                 {
                     OrderDate = DateTime.Now,
                     UserId = user.Id,
-                    Status = or.Status,
+                    IsCart = or.Status,
                     Freight = or.Freight,
                     TableAdress = or.TableAdress,
                     Customer = customer,
@@ -101,7 +101,8 @@ namespace Project_API.Controllers
                     {
                         o.Id,
                         o.OrderDate,
-                        o.Status,
+                        o.IsCart,
+                        o.IsCheck,
                         o.Freight,
                         o.TableAdress,
                         CustomerName = o.Customer.Name,
@@ -130,7 +131,8 @@ namespace Project_API.Controllers
                     {
                         o.Id,
                         o.OrderDate,
-                        o.Status,
+                        o.IsCart,
+                        o.IsCheck,
                         o.Freight,
                         o.TableAdress,
                         Customer = new

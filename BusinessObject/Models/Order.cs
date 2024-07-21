@@ -12,7 +12,7 @@ namespace BusinessObject.Models
 
         public int Id { get; set; }
         public int UserId { get; set; }
-        public bool Status { get; set; }
+        public bool IsCart { get; set; }
         public DateTime OrderDate { get; set; }
         public decimal? Freight { get; set; }
         public int? TableAdress { get; set; }

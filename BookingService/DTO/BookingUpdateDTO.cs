@@ -8,6 +8,7 @@ namespace BookingService.DTO
         public string? Note { get; set; } = null!;
         public DateTime? DateStart { get; set; } = null!;
         public DateTime? DateCheckOut { get; set; } = null!;
+        [JsonIgnore]
         public bool? IsCheck { get; set; } = null!;
         [JsonIgnore]
         public int? UserCheck { get; set; }
