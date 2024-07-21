@@ -1,10 +1,52 @@
-﻿@{
-    Layout = "_AdminLayout";
-}
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Dashboard - SB Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+    <link href="~/css/styles.css" rel="stylesheet" />
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        #bookingTable {
+            display: none; /* Ẩn bảng mặc định */
+        }
+        /* Bố cục và kiểu dáng cho bảng */
+        #bookingTable {
+            display: none; /* Ẩn bảng mặc định */
+            width: 100%; /* Đảm bảo bảng chiếm toàn bộ chiều rộng của container */
+            border-collapse: collapse; /* Hợp nhất các đường viền của ô */
+        }
+
+            /* Định dạng tiêu đề bảng */
+            #bookingTable thead {
+                background-color: #343a40; /* Màu nền cho tiêu đề bảng */
+                color: #ffffff; /* Màu chữ cho tiêu đề bảng */
+            }
+
+            #bookingTable th {
+                padding: 12px 15px; /* Khoảng cách xung quanh nội dung tiêu đề */
+                text-align: left; /* Căn trái nội dung tiêu đề */
+                border-bottom: 1px solid #dee2e6; /* Đường viền dưới tiêu đề bảng */
+            }
+
+            /* Định dạng các hàng trong bảng */
+            #bookingTable tbody tr:nth-child(even) {
+                background-color: #f8f9fa; /* Màu nền cho hàng chẵn */
+            }
+
+            #bookingTable tbody tr:nth-child(odd) {
+                background-color: #ffffff; /* Màu nền cho hàng lẻ */
+            }
+
+            #bookingTable td {
+                padding: 12px 15px; /* Khoảng cách xung quanh nội dung ô */
+                border-bottom: 1px solid #dee2e6; /* Đường viền dưới các ô dữ liệu */
+            }
 
 <!-- Nội dung của Product -->
 <div class="container-fluid px-4">
@@ -139,12 +181,11 @@
 </div>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        loadProductList();
-        $(".modal .close, .modal button.btn-secondary").click(function () {
-            $(this).closest(".modal").modal("hide");
-        });
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            $(".modal .close, .modal button.btn-secondary").click(function () {
+                $(this).closest(".modal").modal("hide");
+            });
 
         $("#btnAdd").click(function () {
             $("#addProductModal").modal("show");
@@ -152,103 +193,96 @@
         const productContent = document.getElementById('productContent');
         const productLink = document.getElementById('productLink');
 
-        $("#saveProduct").click(function () {
-            var formData = new FormData();
-            formData.append("Name", $("#addProductName").val());
-            formData.append("Description", $("#addProductDescription").val());
-            formData.append("Price", $("#addProductPrice").val());
-            formData.append("Weight", $("#addProductWeight").val());
-            formData.append("ImageFile", $("#addProductImage")[0].files[0]);
-            formData.append("Ammount", $("#addProductAmmount").val());
-            formData.append("CategoryId", $("#addProductCategory").val());
+            $("#saveProduct").click(function () {
+                var formData = new FormData();
+                formData.append("Name", $("#addProductName").val());
+                formData.append("Description", $("#addProductDescription").val());
+                formData.append("Price", $("#addProductPrice").val());
+                formData.append("Weight", $("#addProductWeight").val());
+                formData.append("ImageFile", $("#addProductImage")[0].files[0]);
+                formData.append("Ammount", $("#addProductAmmount").val());
+                formData.append("CategoryId", $("#addProductCategory").val());
 
-            $.ajax({
-                url: 'https://localhost:7135/api/Products/AddProduct',
-                type: 'POST',
-                contentType: false,
-                processData: false,
-                data: formData,
-                success: function (response) {
-                    $("#addProductModal").modal("hide");
-                    loadProductList();
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('Error:', textStatus, errorThrown);
-                }
-            });
-        });
-
-        $(document).on('click', '.btnEdit', function () {
-            var productId = $(this).data('id'); // Lấy ID của sản phẩm từ nút Edit
-
-            $.ajax({
-                url: 'https://localhost:7135/api/Products/getProduct?id=' + productId,
-                type: 'GET',
-                success: function (product) {
-                    console.log('Fetched product:', product); // Kiểm tra dữ liệu nhận được
-
-                    // Cập nhật các trường trong modal với dữ liệu nhận được
-                    $("#editProductId").val(product.id);
-                    $("#editProductName").val(product.name);
-                    $("#editProductDescription").val(product.description);
-                    $("#editProductPrice").val(product.price);
-                    $("#editProductWeight").val(product.weight);
-                    $("#editProductAmmount").val(product.ammount);
-                    $("#editProductCategory").val(product.categoryId);
-
-                    // Cập nhật hình ảnh
-                    if (product.image) {
-                        // Kiểm tra và làm sạch URL hình ảnh
-                        var imageUrl = product.image.startsWith('//') ? 'https:' + product.image : product.image;
-                        $("#currentImage").attr("src", imageUrl);
-                    } else {
-                        $("#currentImage").attr("src", ''); // Xóa hình ảnh nếu không có
+                $.ajax({
+                    url: 'https://localhost:7135/api/Products/AddProduct',
+                    type: 'POST',
+                    contentType: false,
+                    processData: false,
+                    data: formData,
+                    success: function (response) {
+                        $("#addProductModal").modal("hide");
+                        loadProductList();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error:', textStatus, errorThrown);
                     }
-
-                    // Hiển thị modal
-                    $("#editProductModal").modal("show");
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('Error:', textStatus, errorThrown);
-                }
+                });
             });
-        });
-        $("#updateProduct").click(function () {
-            var productId = $("#editProductId").val();
-            var formData = new FormData();
 
-            formData.append("Id", productId);
-            formData.append("Name", $("#editProductName").val());
-            formData.append("Description", $("#editProductDescription").val());
-            formData.append("Price", $("#editProductPrice").val());
-            formData.append("Weight", $("#editProductWeight").val());
-            if ($("#editProductImage")[0].files.length > 0) {
-                formData.append("ImageFile", $("#editProductImage")[0].files[0]);
-            }
-            formData.append("Ammount", $("#editProductAmmount").val());
-            formData.append("CategoryId", $("#editProductCategory").val());
-
-            console.log(formData);
-            $.ajax({
-                url: 'https://localhost:7135/api/Products/UpdateProduct/' + productId,
-                type: 'POST',
-                contentType: false,
-                processData: false,
-                data: formData,
-                success: function (response) {
-                    $("#editProductModal").modal("hide");
-                    loadProductList();
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('Error:', textStatus, errorThrown);
-                }
-            });
-        });
-
-
-        $(document).on("click", ".btnDelete", function () {
-            if (confirm("Are you sure you want to delete this product?")) {
+            $(document).on("click", ".btnEdit", function () {
                 var productId = $(this).data("id");
+                console.log("Product ID: ", productId);
+                $.ajax({
+                    url: 'https://localhost:7135/api/Products/' + productId,
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (product) {
+                        console.log("Product data: ", product);
+                        $("#editProductId").val(product.id);
+                        $("#editProductName").val(product.name);
+                        $("#editProductDescription").val(product.description);
+                        $("#editProductPrice").val(product.price);
+                        $("#editProductWeight").val(product.weight);
+                        $("#editProductAmmount").val(product.ammount);
+                        $("#editProductCategory").val(product.categoryId);
+
+                        if (product.image) {
+                            $("#currentImage").attr("src", 'data:image/jpeg;base64,' + product.image);
+                        } else {
+                            $("#currentImage").attr("src", ''); // Xóa ảnh nếu không có
+                        }
+
+                        $("#editProductModal").modal("show");
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error:', textStatus, errorThrown);
+                    }
+                });
+            });
+
+            $("#updateProduct").click(function () {
+                var productId = $("#editProductId").val();
+                var formData = new FormData();
+                formData.append("Id", productId);
+                formData.append("Name", $("#editProductName").val());
+                formData.append("Description", $("#editProductDescription").val());
+                formData.append("Price", $("#editProductPrice").val());
+                formData.append("Weight", $("#editProductWeight").val());
+                if ($("#editProductImage")[0].files.length > 0) {
+                    formData.append("ImageFile", $("#editProductImage")[0].files[0]);
+                }
+                formData.append("Ammount", $("#editProductAmmount").val());
+                formData.append("CategoryId", $("#editProductCategory").val());
+
+                $.ajax({
+                    url: 'https://localhost:7135/api/Products/UpdateProduct/' + productId,
+                    type: 'PUT',
+                    contentType: false,
+                    processData: false,
+                    data: formData,
+                    success: function (response) {
+                        $("#editProductModal").modal("hide");
+                        loadProductList();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error:', textStatus, errorThrown);
+                    }
+                });
+            });
+
+            $(document).on("click", ".btnDelete", function () {
+                if (confirm("Are you sure you want to delete this product?")) {
+                    var productId = $(this).data("id");
 
                 $.ajax({
                     url: 'https://localhost:7135/api/Products/DeleteProduct/' + productId,
@@ -295,15 +329,7 @@
             });
         }
 
-        // productLink.addEventListener('click', function () {
-        //     if (productContent.style.display === 'none' || productContent.style.display === '') {
-        //         productContent.style.display = 'block';
-        //         loadProductList();
-        //     } else {
-        //         productContent.style.display = 'none';
-        //     }
-        //     dashboardContent.style.display = 'none';
-        // });
-    });
-</script>
+            populateTables();
+        });
+    </script>
 

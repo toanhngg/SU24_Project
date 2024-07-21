@@ -56,11 +56,11 @@ namespace Project_API.Controllers
                                                p.Description,
                                                p.Image,
                                                p.Weight,
-											   p.CategoryId,
+                                               p.CategoryId,
                                                p.Ammount,
                                                p.Price,
                                                c.CategoryName
-  
+
                                            }).FirstOrDefault();
 
                 if (productWithCategory == null)
@@ -102,6 +102,52 @@ namespace Project_API.Controllers
 
             return Ok(productsWithCategory);
         }
+
+        [HttpGet("GetAll")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
+        {
+            var products = await context.Products
+                .Include(p => p.Category) // Bao gồm thông tin danh mục
+                .ToListAsync();
+
+            var productDtos = products.Select(product => new ProductDTO
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Weight = product.Weight,
+                Image = product.Image, // Giả sử bạn lưu hình ảnh dưới dạng Base64
+                Ammount = product.Ammount,
+                CategoryName = product.Category.CategoryName // Lấy tên danh mục
+            }).ToList();
+
+            return Ok(productDtos);
+        }
+
+        [HttpGet("SearchProductByName/{name}")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProductByName(string name)
+        {
+            var lowerCaseName = name.ToLower();
+
+            var productDtos = await context.Products
+                .Where(p => p.Name.ToLower().Contains(lowerCaseName))
+                .Select(p => new ProductDTO
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Weight = p.Weight,
+                    Image = p.Image, // Giả sử bạn lưu hình ảnh dưới dạng Base64
+                    Ammount = p.Ammount,
+                    CategoryName = p.Category.CategoryName // Lấy tên danh mục
+                })
+                .ToListAsync();
+
+            return Ok(productDtos);
+        }
+
         [HttpPost("AddProduct")]
         public async Task<ActionResult<Product>> PostProduct([FromForm] ProductDTO productDto)
         {
