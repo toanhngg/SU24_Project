@@ -96,6 +96,28 @@ namespace Project_API.Controllers
             return Ok(categoryToUpdate);
         }
 
+
+        [HttpGet("Search/{name}")]
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> SearchCategoryByName(string name)
+        {
+            var categories = await context.Categories
+                .Where(c => c.CategoryName.Contains(name))
+                .Select(c => new CategoryDTO
+                {
+                    Id = c.Id,
+                    CategoryName = c.CategoryName,
+                    Description = c.Description
+                })
+                .ToListAsync();
+
+            if (categories == null || categories.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(categories);
+        }
+
         private bool CategoryExists(int id)
         {
             return context.Categories.Any(e => e.Id == id);

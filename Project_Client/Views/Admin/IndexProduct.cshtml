@@ -129,8 +129,12 @@
                         <div id="productTable" class="card mb-4">
                             <div class="card-header">
                                 <div class="row">
-                                    <div class="col-md-6 offset-md-6">
-                                        <button class="btn btn-primary float-right" id="btnAdd">+ Add</button>
+                                    <div class="col-md-6">
+                                        <input type="text" id="searchProductName" class="form-control" placeholder="Search by product name">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <button class="btn btn-primary float-right" id="btnSearch">Search</button>
+                                        <button class="btn btn-primary float-right" id="btnAdd" style="margin-right: 10px;">+ Add</button>
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +195,7 @@
                                                 </div>
                                                 <div class="form-group">
                                                     <label for="addProductCategory">Category</label>
-                                                    <input type="number" class="form-control" id="addProductCategory" required>
+                                                    <select class="form-control" id="addProductCategory" required></select>
                                                 </div>
                                             </form>
                                         </div>
@@ -283,10 +287,25 @@
             });
 
             $("#btnAdd").click(function () {
-                $("#addProductModal").modal("show");
+                // Nạp danh mục vào dropdown khi mở modal
+                $.ajax({
+                    url: 'https://localhost:7135/api/Category',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (categories) {
+                        var categorySelect = $('#addProductCategory');
+                        categorySelect.empty();
+                        categorySelect.append('<option value="">Select a category</option>');
+                        $.each(categories, function (index, category) {
+                            categorySelect.append('<option value="' + category.id + '">' + category.categoryName + '</option>');
+                        });
+                        $("#addProductModal").modal("show");
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error:', textStatus, errorThrown);
+                    }
+                });
             });
-            const productContent = document.getElementById('productContent');
-            const productLink = document.getElementById('productLink');
 
             $("#saveProduct").click(function () {
                 var formData = new FormData();
@@ -392,9 +411,56 @@
                 }
             });
 
+            $("#btnSearch").click(function () {
+                var searchProductName = $("#searchProductName").val();
+                if (searchProductName.trim() !== "") {
+                    $.ajax({
+                        url: 'https://localhost:7135/api/Products/SearchProductByName/' + encodeURIComponent(searchProductName),
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (products) {
+                            var productContainer = $('#product-container').find('tbody');
+                            productContainer.empty();
+
+                            if (products.length > 0) {
+                                $.each(products, function (index, product) {
+                                    var row = '<tr>' +
+                                        '<td>' + product.id + '</td>' +
+                                        '<td>' + product.name + '</td>' +
+                                        '<td>' + product.description + '</td>' +
+                                        '<td>' + product.price + '</td>' +
+                                        '<td>' + product.weight + '</td>' +
+                                        '<td>' + '<img src="data:image/jpeg;base64,' + product.image + '" alt="Image" style="width:50px;height:50px;">' + '</td>' +
+                                        '<td>' + product.ammount + '</td>' +
+                                        '<td>' + product.categoryName + '</td>' +
+                                        '<td>' +
+                                        '<button class="btn btn-info btnEdit" data-id="' + product.id + '">Edit</button>' +
+                                        ' <button class="btn btn-danger btnDelete" data-id="' + product.id + '">Delete</button>' +
+                                        '</td>' +
+                                        '</tr>';
+                                    productContainer.append(row);
+                                });
+                            } else {
+                                alert('No categories found');
+                            }
+                        },
+                        error: function (xhr) {
+                            console.log("Error occurred while searching products", xhr);
+                            var message = 'An error occurred while searching products.';
+                            if (xhr.status === 404) {
+                                message = 'No products found.';
+                            }
+                            alert(message);
+                        }
+                    });
+                } else {
+                    loadProductList(); // Load all products if search input is empty
+                }
+            });
+
             function loadProductList() {
                 $.ajax({
-                    url: 'https://localhost:7135/api/Products',
+                    url: 'https://localhost:7135/api/Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
                     success: function (products) {
@@ -409,7 +475,7 @@
                                 '<td>' + product.weight + '</td>' +
                                 '<td>' + '<img src="data:image/jpeg;base64,' + product.image + '" alt="Image" style="width:50px;height:50px;">' + '</td>' +
                                 '<td>' + product.ammount + '</td>' +
-                                '<td>' + product.categoryId + '</td>' +
+                                '<td>' + product.categoryName + '</td>' +
                                 '<td>' +
                                 '<button class="btn btn-info btnEdit" data-id="' + product.id + '">Edit</button>' +
                                 ' <button class="btn btn-danger btnDelete" data-id="' + product.id + '">Delete</button>' +
