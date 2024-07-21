@@ -11,8 +11,16 @@ namespace BookingService
 
             // Đọc cấu hình từ appsettings.json
             var configuration = builder.Configuration;
-            builder.Services.AddCors();
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policy =>
+                {
+                    policy.WithOrigins("https://localhost:7164") // Thay thế bằng URL của bạn
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials(); // Cho phép gửi cookie
+                });
+            });
             // Add services to the container.
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
@@ -30,10 +38,7 @@ namespace BookingService
             builder.Services.AddRabbitMQ(hostName, userName, password);
 
             var app = builder.Build();
-            app.UseCors(policy =>
-                              policy.AllowAnyOrigin()
-                              .AllowAnyHeader()
-                              .AllowAnyMethod());
+            app.UseCors();
             // Cấu hình pipeline xử lý HTTP request
             if (app.Environment.IsDevelopment())
             {

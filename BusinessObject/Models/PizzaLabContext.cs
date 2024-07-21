@@ -96,30 +96,16 @@ namespace BusinessObject.Models
 
                 entity.Property(e => e.Freight).HasColumnType("money");
 
-                entity.Property(e => e.IsCart).HasColumnName("isCart");
-
                 entity.Property(e => e.IsCheck).HasColumnName("isCheck");
 
                 entity.Property(e => e.Note).HasMaxLength(100);
 
                 entity.Property(e => e.OrderDate).HasColumnType("datetime");
 
-                entity.Property(e => e.RequiredDate).HasColumnType("datetime");
-
-                entity.Property(e => e.ShipAddress).HasMaxLength(50);
-
-                entity.Property(e => e.ShippedDate).HasColumnType("datetime");
-
                 entity.HasOne(d => d.Customer)
                     .WithMany(p => p.Orders)
                     .HasForeignKey(d => d.CustomerId)
                     .HasConstraintName("FK_Order_Customer");
-
-                entity.HasOne(d => d.User)
-                    .WithMany(p => p.Orders)
-                    .HasForeignKey(d => d.UserId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_Order_User");
             });
 
             modelBuilder.Entity<OrderDetail>(entity =>

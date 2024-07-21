@@ -13,6 +13,9 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
 
 namespace BookingService.Controllers
 {
@@ -48,29 +51,48 @@ namespace BookingService.Controllers
 
                 if (request.Date < DateTime.Now.Date)
                 {
-                    return BadRequest(new { title = "Không được đặt bàn trong quá khứ." });
+                    return BadRequest(new { title = "Cannot book a table in the past." });
                 }
 
                 TimeSpan bookingDuration = TimeSpan.FromHours(2);
                 DateTime dateStart = request.Date.Value.Date + timeSpan;
                 DateTime dateCheckOut = dateStart + bookingDuration;
 
-                // Lấy danh sách các bàn còn trống và tổng số chỗ trống
-                var availableTables = await _context.Tables
-                    .Where(t => !_context.Bookings
-                        .Any(b => (b.DateStart < dateCheckOut && b.DateCheckOut > dateStart) ||
-                                  (dateStart < b.DateStart && dateCheckOut > b.DateStart) ||
-                                  (b.DateStart < dateCheckOut && dateStart < b.DateCheckOut)))
+                DateTime now = DateTime.UtcNow; // Or DateTime.Now if you are using local time
+
+                // Fetch tables and bookings for the requested date
+                var tables = await _context.Tables.ToListAsync();
+                var bookings = await _context.Bookings
+                    .Where(b => b.Date.Value.Date == request.Date.Value.Date)
+                    .Include(b => b.Tables) // Include related tables for each booking
                     .ToListAsync();
+
+                // Filter out tables that are not available during the requested period
+                var availableTables = tables
+                    .Where(t => !bookings
+                        .Any(b => b.Tables
+                            .Any(tb => tb.Id == t.Id &&
+                                (
+                                    (b.DateStart.HasValue && b.DateCheckOut.HasValue &&
+                                     b.DateStart.Value < dateCheckOut && b.DateCheckOut.Value > dateStart) ||
+                                     (!b.DateStart.HasValue && !b.DateCheckOut.HasValue &&
+                                     b.Date.Value.Date + b.Time + bookingDuration > now &&
+                                     (b.Date.Value.Date + b.Time < dateCheckOut &&
+                                      b.Date.Value.Date + b.Time + bookingDuration > dateStart))
+                                )
+                            )
+                        )
+                    )
+                    .ToList();
 
                 var totalCapacity = availableTables.Sum(t => t.NumberOfPeople);
 
                 if (totalCapacity < request.NumberOfPeople)
                 {
-                    return BadRequest(new { title = "Hết bàn vào thời gian này." });
+                    return BadRequest(new { title = "No available tables for the requested number of people." });
                 }
 
-                // Tạo booking mới
+                // Create a new booking
                 var booking = new Booking
                 {
                     CustomerId = await SaveCustomer(request.Customer),
@@ -79,14 +101,12 @@ namespace BookingService.Controllers
                     NumberOfPeople = request.NumberOfPeople,
                     Note = request.Note,
                     DateBooking = DateTime.Now,
-                    DateStart = dateStart,
-                    DateCheckOut = dateCheckOut,
-                    Tables = new List<Table>() // Tạo danh sách các bàn được đặt
+                    Tables = new List<Table>() // List of booked tables
                 };
 
                 int remainingPeople = (int)request.NumberOfPeople;
 
-                // Phân bổ số lượng người cho các bàn
+                // Allocate tables to accommodate the required number of people
                 foreach (var table in availableTables)
                 {
                     if (remainingPeople <= 0)
@@ -99,7 +119,7 @@ namespace BookingService.Controllers
 
                 if (remainingPeople > 0)
                 {
-                    return BadRequest(new { title = "Không đủ bàn để phục vụ số lượng người yêu cầu." });
+                    return BadRequest(new { title = "Not enough tables to accommodate the requested number of people." });
                 }
 
                 _context.Bookings.Add(booking);
@@ -114,27 +134,130 @@ namespace BookingService.Controllers
                 return BadRequest(new { title = $"Internal server error: {ex.Message}" });
             }
         }
+        [HttpDelete("Abort/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                // Fetch the booking and related tables
+                var booking = await _context.Bookings
+                    .Include(b => b.Tables) // Include related tables
+                    .Include(b => b.Customer) // Include related customer
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+                if (booking == null)
+                {
+                    return NotFound(); // Return 404 if the booking is not found
+                }
+
+                // Remove the booking reference from each related table
+                foreach (var table in booking.Tables.ToList())
+                {
+                    table.Bookings.Remove(booking);
+                    _context.Tables.Update(table);
+                }
+
+                // Remove the booking
+                _context.Bookings.Remove(booking);
+
+                // Remove the customer (if needed)
+                if (booking.Customer != null)
+                {
+                    _context.Customers.Remove(booking.Customer);
+                }
+
+                // Save changes
+                await _context.SaveChangesAsync();
+
+                return NoContent(); // Return 204 No Content on successful deletion
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (optional)
+                Console.Error.WriteLine(ex);
+
+                // Return a generic error message
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             try
             {
-                var listBooking = _context.Bookings.ToList();
-                return Ok(listBooking);
+                // Fetch all bookings with related tables
+                var bookings = await _context.Bookings
+                    .Include(b => b.Tables) // Ensure that you include related tables
+                    .Include(c => c.Customer)
+                    .ToListAsync();
+
+                // Map the bookings to a new anonymous type including the concatenated table names
+                var detailBookings = bookings.Select(booking => new
+                {
+                    booking.Id,
+                    booking.Customer.Name,
+                    booking.Customer.Phone,
+                    booking.Date,
+                    booking.Time,
+                    booking.NumberOfPeople,
+                    booking.Note,
+                    booking.DateBooking,
+                    booking.DateStart,
+                    booking.DateCheckOut,
+                    BookingTable = string.Join(", ", booking.Tables.Select(t => t.Name)), // Concatenate table names
+                   // booking.IsCheck
+                }).ToList();
+
+                return Ok(detailBookings);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // Log the exception (optional)
+                Console.Error.WriteLine(ex);
+
+                // Return a generic error message
+                return StatusCode(500, "Internal server error");
             }
         }
+
 
         [HttpGet("getDetailById/{id}")]
         public async Task<IActionResult> getDetailById(int id)
         {
             try
             {
-                var detailBooking = _context.Bookings.ToList().Where(x => x.Id == id);
+                var booking = await _context.Bookings
+                    .Include(b => b.Tables) // Assuming a relationship exists between Bookings and Tables
+                    .Include(c => c.Customer)
+                    .FirstOrDefaultAsync(b => b.Id == id);
+
+                if (booking == null)
+                {
+                    return NotFound();
+                }
+
+                // Concatenate table names
+                var tableNames = booking.Tables.Select(t => t.Name).ToList();
+                var tableNamesString = string.Join(", ", tableNames);
+
+                var detailBooking = new
+                {
+                    booking.Id,
+                    booking.Customer.Name,
+                    booking.Customer.Phone,
+                    booking.Date,
+                    booking.Time,
+                    booking.NumberOfPeople,
+                    booking.Note,
+                    booking.DateBooking,
+                    booking.DateStart,
+                    booking.DateCheckOut,
+                    BookingTable = tableNamesString, // Concatenated table names
+                    booking.IsCheck
+                };
+
                 return Ok(detailBooking);
             }
             catch (Exception ex)
@@ -142,97 +265,48 @@ namespace BookingService.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpPost("update/{id}")]
+
+        [HttpPost("UpdateBooking")]
         public async Task<IActionResult> UpdateBooking([FromBody] BookingUpdateDTO req)
         {
             try
             {
-                var emailClaim = User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Email);
+                string jsonString = Request.Cookies["authToken"];
+                var jsonObject = JsonConvert.DeserializeObject<dynamic>(jsonString);
+                string jwt = jsonObject?.token;
+                Console.WriteLine(jwt);
+                var handler = new JwtSecurityTokenHandler();
+                var jsonToken = handler.ReadToken(jwt) as JwtSecurityToken;
+
+                if (jsonToken == null)
+                {
+                    return BadRequest(new { title = "JWT không hợp lệ." });
+                }
+
+                // Trích xuất thông tin từ payload
+                var emailClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "email");
+
                 if (emailClaim == null)
                 {
                     return BadRequest(new { title = "Không tìm thấy email người dùng." });
                 }
 
                 var userEmail = emailClaim.Value.ToLower();
-                var user = await _context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == userEmail);
+
+                var user = _context.Users.Where(x => x.Email.ToLower() == userEmail).FirstOrDefault();
                 if (user == null)
                 {
                     return BadRequest(new { title = "Người dùng không tồn tại." });
                 }
-
                 var detailBooking = await _context.Bookings
                     .Include(b => b.Tables) // Include related Tables for updating
                     .FirstOrDefaultAsync(x => x.Id == req.Id);
-                if (detailBooking == null)
-                {
-                    return NotFound(new { title = "Không tìm thấy booking." });
-                }
-
-                if (req.Date == null || req.Time == null || !TimeSpan.TryParse(req.Time, out TimeSpan timeSpan))
-                {
-                    return BadRequest(new { title = "Thời gian không hợp lệ." });
-                }
-
-                // Tính DateStart và DateCheckOut cho booking mới
-                DateTime dateStart = req.Date.Value + timeSpan;
-                DateTime dateCheckOut = dateStart + TimeSpan.FromHours(2);
-
-                // Lấy danh sách các bàn còn trống và tổng số chỗ trống
-                var availableTables = await _context.Tables
-                    .Where(t => !_context.Bookings
-                        .Any(b => b.Id != req.Id &&
-                                  ((b.DateStart < dateCheckOut && b.DateCheckOut > dateStart) || // A < C < B
-                                   (dateStart < b.DateStart && dateCheckOut > b.DateStart) || // C < A < D
-                                   (b.DateStart < dateCheckOut && dateStart < b.DateCheckOut)))) // A < D < B
-                    .OrderByDescending(t => t.NumberOfPeople) // Sắp xếp bàn theo số lượng người (từ lớn đến nhỏ)
-                    .ToListAsync();
-
-                var totalCapacity = availableTables.Sum(t => t.NumberOfPeople);
-
-                if (totalCapacity < req.NumberOfPeople)
-                {
-                    return BadRequest(new { title = "Hết bàn vào thời gian này." });
-                }
-
-                // Phân bổ số lượng người cho các bàn
-                int remainingPeople = (int)req.NumberOfPeople;
-                var newTables = new List<Table>();
-
-                foreach (var table in availableTables)
-                {
-                    if (remainingPeople <= 0)
-                        break;
-
-                    int peopleForThisTable = Math.Min(remainingPeople, (int)table.NumberOfPeople);
-                    newTables.Add(table);
-                    remainingPeople -= peopleForThisTable;
-                }
-
-                if (remainingPeople > 0)
-                {
-                    return BadRequest(new { title = "Không đủ bàn để phục vụ số lượng người yêu cầu." });
-                }
-
+               
                 // Cập nhật thông tin booking
-                detailBooking.Date = req.Date.Value;
-                detailBooking.Time = timeSpan;
-                detailBooking.NumberOfPeople = req.NumberOfPeople;
                 detailBooking.Note = req.Note;
-                detailBooking.DateBooking = DateTime.Now;
-                detailBooking.DateStart = dateStart;
-                detailBooking.DateCheckOut = dateCheckOut;
-                detailBooking.IsCheck = req.IsCheck;
+                detailBooking.DateStart = req.DateStart;
+                detailBooking.DateCheckOut = req.DateCheckOut;
                 detailBooking.UserCheck = user.Id;
-
-                // Xóa các liên kết cũ với các bàn
-                var oldTables = detailBooking.Tables.ToList();
-                detailBooking.Tables.Clear();
-
-                // Thêm các liên kết mới với các bàn
-                foreach (var table in newTables)
-                {
-                    detailBooking.Tables.Add(table);
-                }
 
                 _context.Bookings.Update(detailBooking);
 
@@ -286,7 +360,7 @@ namespace BookingService.Controllers
                     Subject = "Booking Confirmation",
                     Message = $"Dear {customer.Name}, your booking has been confirmed."
                 };
-                var messageBody = JsonSerializer.Serialize(bookingMessage);
+                var messageBody = System.Text.Json.JsonSerializer.Serialize(bookingMessage);
                 var body = Encoding.UTF8.GetBytes(messageBody);
 
                 channel.BasicPublish(exchange: "booking_exchange",

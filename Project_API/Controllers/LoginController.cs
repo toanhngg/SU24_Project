@@ -29,17 +29,33 @@ namespace Project_API.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] UserModel login)
         {
-            IActionResult response = Unauthorized();
+            // Xác thực người dùng
             var user = AuthenticateUser(login);
-
-            if (user != null)
+            if (user == null)
             {
-                var tokenString = GenerateJSONWebToken(user);
-                response = Ok(new { token = tokenString });
+                return Unauthorized(); // Trả về Unauthorized nếu người dùng không hợp lệ
             }
 
-            return response;
+            // Tạo JWT
+            var tokenString = GenerateJSONWebToken(user);
+
+       
+
+            // Trả về JWT trong response body nếu cần
+            return Ok(new { token = tokenString });
         }
+
+        [HttpGet("GetAuthToken")]
+public IActionResult GetAuthToken()
+{
+    var authToken = Request.Cookies["authToken"];
+    if (string.IsNullOrEmpty(authToken))
+    {
+        return BadRequest(new { title = "Cookie không tồn tại hoặc không có giá trị." });
+    }
+    return Ok(new { authToken = authToken });
+}
+
 
         private string GenerateJSONWebToken(UserModel userInfo)
         {
@@ -62,16 +78,27 @@ namespace Project_API.Controllers
         private UserModel AuthenticateUser(UserModel login)
         {
             UserModel user = null;
-            User us = _context.Users.Where(x=> x.Email == login.Email && x.Password == login.Password).FirstOrDefault();
+            User us = _context.Users.Where(x => x.Email == login.Email && x.Password == login.Password).FirstOrDefault();
             //Validate the User Credentials
             //Demo Purpose, I have Passed HardCoded User Information
             if (us != null)
             {
-                user = new UserModel { 
-                    Email = us.Email, 
-                    RoleId = us.RoleId };
+                user = new UserModel
+                {
+                    Email = us.Email,
+                    RoleId = us.RoleId
+                };
             }
             return user;
+        }
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // Xóa cookie xác thực
+            await HttpContext.SignOutAsync();
+
+            // Trả về phản hồi thành công
+            return Ok(new { message = "Logged out successfully" });
         }
         [HttpGet]
         [Authorize]

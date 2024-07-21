@@ -1,19 +1,16 @@
-﻿namespace BookingService.DTO
+﻿using System.Text.Json.Serialization;
+
+namespace BookingService.DTO
 {
     public class BookingUpdateDTO
     {
         public int Id { get; set; }
-        public int? CustomerId { get; set; }
-        public DateTime? Date { get; set; }
-        public string? Time { get; set; }
-        public int? NumberOfPeople { get; set; }
-        public string? Note { get; set; }
-        public DateTime? DateBooking { get; set; }
-        public DateTime? DateStart { get; set; }
-        public DateTime? DateCheckOut { get; set; }
-        public int? BookingTable { get; set; }
-        public bool? IsCheck { get; set; }
-      //  public int? UserCheck { get; set; }
+        public string? Note { get; set; } = null!;
+        public DateTime? DateStart { get; set; } = null!;
+        public DateTime? DateCheckOut { get; set; } = null!;
+        public bool? IsCheck { get; set; } = null!;
+        [JsonIgnore]
+        public int? UserCheck { get; set; }
 
     }
 }

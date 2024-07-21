@@ -1,0 +1,199 @@
+﻿@{
+    Layout = "_AdminLayout";
+}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+<!-- Nội dung của Product -->
+<div class="container-fluid px-4">
+    <div class="card mb-4">
+        <div class="card-header">
+        </div>
+        <div class="row">
+            <!-- Bảng Danh Sách Đơn Hàng -->
+            <div class="col-md-6">
+                <div id="ordersContainer">
+                    <h2>Orders</h2>
+                    <table id="ordersTable" class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Order Date</th>
+                                <th>Status</th>
+                                <th>Freight</th>
+                                <th>Table Address</th>
+                                <th>Customer Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody">
+                            <!-- Orders will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="pagination" class="text-center">
+                        <!-- Pagination buttons will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng Chi Tiết Đơn Hàng -->
+            <div class="col-md-6">
+                <div id="orderDetails" class="details" style="display: none;">
+                    <h2>Order Details</h2>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Product Name</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderDetailsBody">
+                            <!-- Order details will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="paymentButton" style="display: none; margin-top: 10px;">
+                        <button class="btn btn-success" onclick="payOrder()">Pay</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<script>
+    let currentPage = 1;
+    const recordsPerPage = 8;
+    let ordersData = [];
+    let currentOrderId = null;
+   let currentFreight = null;
+    function loadOrders(page = 1) {
+        fetch('https://localhost:7135/api/Order')
+            .then(response => response.json())
+            .then(orders => {
+                ordersData = orders; // Save data for pagination
+                const paginatedOrders = paginateOrders(orders, page);
+                displayOrders(paginatedOrders);
+                setupPagination();
+            })
+            .catch(error => console.error('Error loading orders:', error));
+    }
+
+    function paginateOrders(orders, page) {
+        const start = (page - 1) * recordsPerPage;
+        const end = start + recordsPerPage;
+        return orders.slice(start, end);
+    }
+
+    function displayOrders(orders) {
+        const ordersBody = document.getElementById('ordersBody');
+        ordersBody.innerHTML = ''; // Clear existing rows
+
+        orders.forEach(order => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${order.id}</td>
+                <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                <td>${order.status ? 'Completed' : 'Pending'}</td>
+                <td>${order.freight}</td>
+                <td>${order.tableAdress}</td>
+                <td>${order.customerName}</td>
+                <td>
+                            <button class="btn btn-info" onclick="loadOrderDetails(${order.id}, ${order.freight})">View Details</button>
+                    </td>
+            `;
+            ordersBody.appendChild(row);
+        });
+    }
+
+    function setupPagination() {
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = ''; // Clear existing pagination
+
+        const totalPages = Math.ceil(ordersData.length / recordsPerPage);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.className = 'btn btn-primary mx-1';
+            button.onclick = () => {
+                currentPage = i;
+                loadOrders(currentPage);
+            };
+            pagination.appendChild(button);
+        }
+    }
+
+    function loadOrderDetails(orderId, freight) {
+        fetch(`https://localhost:7135/api/Order/GetOrderDetails/${orderId}`)
+            .then(response => response.json())
+            .then(order => {
+                const detailsBody = document.getElementById('orderDetailsBody');
+                detailsBody.innerHTML = ''; // Clear existing rows
+
+                order.orderDetails.forEach(detail => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${detail.productId}</td>
+                        <td>${detail.quantity}</td>
+                        <td>${detail.price}</td>
+                        <td>${detail.productName}</td>
+                    `;
+                    detailsBody.appendChild(row);
+                });
+
+                // Show order details section
+                document.getElementById('orderDetails').style.display = 'block';
+
+                // Update current order information and show payment button if applicable
+                currentOrderId = orderId;
+                currentFreight = freight;
+
+                // Check if status is 0 or null
+                if (order.status === false || order.status === null) {
+                    document.getElementById('paymentButton').style.display = 'block';
+                } else {
+                    document.getElementById('paymentButton').style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error loading order details:', error));
+    }
+
+    function payOrder() {
+        if (currentOrderId && currentFreight) {
+            const requestBody = {
+                orderId: currentOrderId,
+                amount: currentFreight,
+                provider: '4505023455'
+            };
+
+            console.log('Request Body:', JSON.stringify(requestBody)); // Kiểm tra dữ liệu gửi đi
+
+            fetch('https://localhost:7135/api/VNPay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody),
+            })
+                .then(response => response.text()) // Đọc phản hồi dưới dạng văn bản
+                .then(paymentUrl => {
+                    // Mở URL thanh toán trong cửa sổ mới
+                    console.log('Payment URL:', paymentUrl); // Kiểm tra URL nhận được
+                    window.open(paymentUrl, '_blank'); // Mở URL thanh toán
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    }
+
+
+    // Load orders on page load
+    document.addEventListener('DOMContentLoaded', () => loadOrders(currentPage));
+
+
+</script>

@@ -1,4 +1,8 @@
 ﻿@{
+    var jwtToken = Context.Request.Cookies["authToken"];
+    bool isAuthenticated = !string.IsNullOrEmpty(jwtToken);
+}
+@{
     Layout = "_AdminLayout";
 }
 <div class="container-fluid px-4">
@@ -8,7 +12,8 @@
                 <thead>
                     <tr>
                         <th>Booking ID</th>
-                        <th>Customer ID</th>
+                        <th>Customer Name</th>
+                        <th>Customer Phone</th>
                         <th>Date</th>
                         <th>Time</th>
                         <th>Number of People</th>
@@ -17,8 +22,8 @@
                         <th>Date Start</th>
                         <th>Date Check-Out</th>
                         <th>Booking Table</th>
-                        <th>Is Check</th>
-                        <th></th>
+                        <th>Time Remaining</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="bookingTableBody">
@@ -26,22 +31,30 @@
                 </tbody>
             </table>
             <!-- Modal -->
-            <div id="detailModal" class="modal">
+            <div id="detailModal" class="modal" style="display: none;">
                 <div class="modal-content">
                     <span class="close" onclick="closeModal()">&times;</span>
                     <h2>Update Booking</h2>
                     <form id="updateForm">
                         <div class="form-row">
+                            <label for="namebooking">Name Person booking:</label>
+                            <input type="text" id="namebooking" name="namebooking" readonly>
+                        </div>
+                        <div class="form-row">
+                            <label for="phonebooking">Phone number booking:</label>
+                            <input type="text" id="phonebooking" name="phonebooking" readonly>
+                        </div>
+                        <div class="form-row">
                             <label for="date">Date:</label>
-                            <input type="date" id="date" name="date">
+                            <input type="date" id="date" name="date" readonly>
                         </div>
                         <div class="form-row">
                             <label for="time">Time:</label>
-                            <input type="time" id="time" name="time">
+                            <input type="time" id="time" name="time" readonly>
                         </div>
                         <div class="form-row">
                             <label for="numberOfPeople">Number of People:</label>
-                            <input type="number" id="numberOfPeople" name="numberOfPeople">
+                            <input type="number" id="numberOfPeople" name="numberOfPeople" readonly>
                         </div>
                         <div class="form-row">
                             <label for="note">Note:</label>
@@ -57,11 +70,7 @@
                         </div>
                         <div class="form-row">
                             <label for="bookingTable2">Booking Table:</label>
-                            <select id="bookingTable2" name="bookingTable2"></select>
-                        </div>
-                        <div class="form-row">
-                            <label for="isCheck">Is Check:</label>
-                            <input type="checkbox" id="isCheck" name="isCheck">
+                            <input type="text" id="bookingTable2" name="bookingTable2" readonly>
                         </div>
                         <div class="form-row">
                             <input type="hidden" id="bookingId" name="bookingId">
@@ -75,9 +84,11 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 <script>
     let bookings = [];
+    let tablesData = [];
 
     async function fetchBookings() {
         try {
@@ -100,48 +111,99 @@
         tableBody.innerHTML = '';
         bookings.forEach(booking => {
             const row = document.createElement('tr');
+            const timeRemaining = getTimeRemaining(booking.dateStart, booking.dateCheckOut);
             row.innerHTML = `
-                    <td>${booking.id}</td>
-                    <td>${booking.customerId}</td>
-                    <td>${new Date(booking.date).toLocaleDateString()}</td>
-                    <td>${booking.time}</td>
-                    <td>${booking.numberOfPeople}</td>
-                    <td>${booking.note}</td>
-                    <td>${new Date(booking.dateBooking).toLocaleDateString()}</td>
-                    <td>${new Date(booking.dateStart).toLocaleDateString()}</td>
-                    <td>${new Date(booking.dateCheckOut).toLocaleDateString()}</td>
-                    <td>${booking.bookingTable}</td>
-                    <td>${booking.isCheck ? 'Checked' : 'Not Checked'}</td>
-                    <td><button onclick="openModal(${booking.id})">Detail</button></td>
-                `;
+                        <td>${booking.id}</td>
+                        <td>${booking.name}</td>
+                        <td>${booking.phone}</td>
+                        <td>${new Date(booking.date).toLocaleDateString()}</td>
+                        <td>${booking.time}</td>
+                        <td>${booking.numberOfPeople}</td>
+                        <td>${booking.note}</td>
+                        <td>${booking.dateBooking ? new Date(booking.dateBooking).toLocaleDateString() : ''}</td>
+                        <td>${booking.dateStart ? new Date(booking.dateStart).toLocaleString() : ''}</td>
+                        <td>${booking.dateCheckOut ? new Date(booking.dateCheckOut).toLocaleString() : ''}</td>
+                        <td>${booking.bookingTable}</td>
+                        <td>${timeRemaining}</td>
+            <td>${!booking.dateStart && !booking.dateCheckOut ? `<button onclick="abortBooking(${booking.id})">Abort</button>` : ''}
+                           <button onclick="openModal(${booking.id})">Detail</button>
+                        </td>
+                    `;
             tableBody.appendChild(row);
-            console.log(row)
         });
+
+        // Sort the table rows by time remaining
+        sortTableByTimeRemaining();
     }
 
-    let tablesData = [];
+    function getTimeRemaining(dateStart, dateCheckOut) {
+        const now = new Date();
+        const end = new Date(dateCheckOut);
+        const diff = end - now;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        if (hours < 0) return 'Expired';
+        return `${hours}h ${minutes}m`;
+    }
 
-    async function populateTables() {
-        const apiUrl = 'https://localhost:7135/api/Table';
+    function sortTableByTimeRemaining() {
+        const tableBody = document.getElementById('bookingTableBody');
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
 
-        try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+        rows.sort((a, b) => {
+            const aTime = a.querySelector('td:nth-child(11)').textContent.trim();
+            const bTime = b.querySelector('td:nth-child(11)').textContent.trim();
+
+            if (aTime === 'Expired') return 1;
+            if (bTime === 'Expired') return -1;
+
+            const aHours = parseInt(aTime.split('h')[0]);
+            const bHours = parseInt(bTime.split('h')[0]);
+
+            return aHours - bHours;
+        });
+
+        rows.forEach(row => tableBody.appendChild(row));
+    }
+
+    async function abortBooking(bookingId) {
+        if (confirm('Are you sure you want to abort this booking?')) {
+            try {
+                const response = await fetch(`https://localhost:7130/api/Booking/Abort/${bookingId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include' // Ensure the cookie is sent with the request
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                console.log('Booking aborted successfully');
+                await populateBookingTable(); // Update the booking table
+            } catch (error) {
+                console.error('Abort error:', error);
             }
-            const data = await response.json();
-            tablesData = data;
-            const tableSelect = document.getElementById('bookingTable2');
-            data.forEach(table => {
-                const option = document.createElement('option');
-                option.value = table.id;
-                option.textContent = table.name;
-                tableSelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Fetch error:', error);
         }
     }
+
+    // async function populateTables() {
+    //     const apiUrl = 'https://localhost:7135/api/Table';
+
+    //     try {
+    //         const response = await fetch(apiUrl);
+    //         if (!response.ok) {
+    //             throw new Error('Network response was not ok');
+    //         }
+    //         const data = await response.json();
+    //         tablesData = data;
+    //         // Populate table select if needed
+    //     } catch (error) {
+    //         console.error('Fetch error:', error);
+    //     }
+    // }
 
     async function openModal(id) {
         const apiUrl = `https://localhost:7130/api/Booking/getDetailById/${id}`;
@@ -152,34 +214,69 @@
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            const booking = data[0];
 
             function formatDateTime(value) {
                 if (value) {
                     const date = new Date(value);
-                    return isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 16);
+                    if (isNaN(date.getTime())) {
+                        return ''; // Return empty string if value is invalid
+                    }
+
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+                    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
                 }
                 return '';
             }
 
-            document.getElementById('date').value = booking.date ? new Date(booking.date).toISOString().split('T')[0] : '';
-            document.getElementById('time').value = booking.time ? booking.time.slice(0, 5) : '';
-            document.getElementById('numberOfPeople').value = booking.numberOfPeople || '';
-            document.getElementById('note').value = booking.note || '';
-            document.getElementById('dateStart').value = formatDateTime(booking.dateStart);
-            document.getElementById('dateCheckOut').value = formatDateTime(booking.dateCheckOut);
+            function combineDateTime(date, time) {
+                if (!date || !time) {
+                    return '';
+                }
 
-            const table = tablesData.find(t => t.id === booking.bookingTable);
-            if (table) {
-                document.getElementById('bookingTable2').value = table.id;
-            } else {
-                document.getElementById('bookingTable2').value = '';
+                const dateTimeString = `${date}T${time}`;
+                const dateTime = new Date(dateTimeString);
+                return isNaN(dateTime.getTime()) ? '' : dateTime.toISOString().slice(0, 16);
             }
 
-            document.getElementById('isCheck').checked = booking.isCheck === true;
-            document.getElementById('bookingId').value = booking.id;
+            function addHours(dateTimeString, hours) {
+                const dateTime = new Date(dateTimeString);
+                dateTime.setHours(dateTime.getHours() + hours);
+                return isNaN(dateTime.getTime()) ? '' : dateTime.toISOString().slice(0, 16);
+            }
 
-            document.getElementById('detailModal').style.display = 'block';
+            if (data) {
+                const dateTime = data.date.split('T')[0]; // "2024-07-18"
+
+                // Kết hợp ngày và giờ
+                const dateTimeString = `${dateTime}T${time}`; // "2024-07-18T20:00:00"
+
+                // Tạo đối tượng Date từ chuỗi ngày giờ
+                const dateStart = new Date(dateTimeString);
+                // Create dateCheckOut by adding 2 hours to dateStart
+                const dateCheckOut = addHours(dateStart, 2);
+                document.getElementById('phonebooking').value = data.phone;
+                document.getElementById('namebooking').value = data.name;
+
+                document.getElementById('dateStart').value = formatDateTime(dateStart);
+                document.getElementById('dateCheckOut').value = formatDateTime(dateCheckOut);
+
+                document.getElementById('date').value = data.date ? new Date(data.date).toISOString().split('T')[0] : '';
+                document.getElementById('time').value = data.time ? data.time.slice(0, 5) : '';
+                document.getElementById('numberOfPeople').value = data.numberOfPeople || '';
+                document.getElementById('note').value = data.note || '';
+                document.getElementById('bookingTable2').value = data.bookingTable || '';
+                document.getElementById('bookingId').value = data.id;
+
+                document.getElementById('detailModal').style.display = 'block';
+            } else {
+                console.error('No booking data found');
+            }
         } catch (error) {
             console.error('Fetch error:', error);
         }
@@ -190,53 +287,43 @@
     }
 
     async function updateBooking() {
-        // detailBooking.Date = req.Date;
-        // detailBooking.Time = req.Time;
-        // detailBooking.NumberOfPeople = req.NumberOfPeople;
-        // detailBooking.Note = req.Note;
-        // detailBooking.DateBooking = req.DateBooking;
-        // detailBooking.DateStart = req.DateStart;
-        // detailBooking.DateCheckOut = req.DateCheckOut;
-        // detailBooking.BookingTable = req.BookingTable;
-        // detailBooking.IsCheck = req.IsCheck;
-
-
         const id = parseInt(document.getElementById('bookingId').value);
+        const note = document.getElementById('note').value;
+
         const dateStart = document.getElementById('dateStart').value;
         const dateCheckOut = document.getElementById('dateCheckOut').value;
-        const bookingTable = document.getElementById('bookingTable2').value;
-        const isCheck = document.getElementById('isCheck').checked;
 
-        const booking = bookings.find(b => b.id === id);
+        const booking = {
+            id: id,
+            note: note,
+            dateStart: dateStart,
+            dateCheckOut: dateCheckOut
+        };
 
-        if (booking) {
-            booking.dateStart = dateStart;
-            booking.dateCheckOut = dateCheckOut;
-            booking.bookingTable = bookingTable;
-            booking.isCheck = isCheck;
+        try {
+            const response = await fetch(`https://localhost:7130/api/Booking/UpdateBooking`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include', // Ensure the cookie is sent with the request
+                body: JSON.stringify(booking)
+            });
 
-            try {
-                const response = await fetch(`https://localhost:7130/api/Booking/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(booking)
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                console.log('Booking updated successfully');
-                closeModal();
-                await populateBookingTable();
-            } catch (error) {
-                console.error('Update error:', error);
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
+
+            console.log('Booking updated successfully');
+            closeModal();
+            await populateBookingTable();
+        } catch (error) {
+            console.error('Update error:', error);
         }
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
-        await populateTables();
+        // await populateTables();
         await populateBookingTable();
     });
 </script>
