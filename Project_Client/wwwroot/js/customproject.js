@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
-            const addressCus = document.getElementById('addressCus').value;
+            const addressCus = document.getElementById('tableDropdown').value;
             const phoneCus = document.getElementById('phoneCus').value;
             const nameCus = document.getElementById('nameCus').value;
             const emailCus = document.getElementById('emailCus').value;
@@ -180,11 +180,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     throw new Error(`Network response was not ok: ${errorText}`);
                 }
 
-                const result = await response.json();
+                /*const result = await response.json();*/
                 console.log('Order Data:', orderData);
                 alert('Order successfully created!');
             } catch (error) {
-                console.error('Error:', error);
+                alert("nosuccess" + error);
             }
         });
     } else {

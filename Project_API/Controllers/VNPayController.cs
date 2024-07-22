@@ -118,52 +118,52 @@ namespace Project_API.Controllers
         //    //return RedirectToAction("CheckoutSuccess", "Paypal");
         //    return Ok();
         //}
-        [HttpGet("PaymentConfirm")]
-        public IActionResult PaymentConfirm()
-        {
-            var rabbitMQService = new RabbitMQService();
+        //[HttpGet("PaymentConfirm")]
+        //public IActionResult PaymentConfirm()
+        //{
+        //    var rabbitMQService = new RabbitMQService();
             
-                if (Request.Query.Count > 0)
-                {
-                    string hashSecret = _configuration["VNPAY:HashSecret"];
-                    var vnpayData = Request.Query.AsEnumerable();
-                    PayLib pay = new PayLib();
+        //        if (Request.Query.Count > 0)
+        //        {
+        //            string hashSecret = _configuration["VNPAY:HashSecret"];
+        //            var vnpayData = Request.Query.AsEnumerable();
+        //            PayLib pay = new PayLib();
 
-                    foreach (var s in vnpayData)
-                    {
-                        pay.AddResponseData(s.Key, s.Value);
-                    }
+        //            foreach (var s in vnpayData)
+        //            {
+        //                pay.AddResponseData(s.Key, s.Value);
+        //            }
 
-                    long orderId = Convert.ToInt64(pay.GetResponseData("vnp_TxnRef"));
-                    long vnpayTranId = Convert.ToInt64(pay.GetResponseData("vnp_TransactionNo"));
-                    string vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
-                    string vnp_SecureHash = Request.Query["vnp_SecureHash"];
+        //            long orderId = Convert.ToInt64(pay.GetResponseData("vnp_TxnRef"));
+        //            long vnpayTranId = Convert.ToInt64(pay.GetResponseData("vnp_TransactionNo"));
+        //            string vnp_ResponseCode = pay.GetResponseData("vnp_ResponseCode");
+        //            string vnp_SecureHash = Request.Query["vnp_SecureHash"];
 
-                    bool checkSignature = pay.ValidateSignatureHmacSHA512(vnp_SecureHash, hashSecret);
+        //            bool checkSignature = pay.ValidateSignatureHmacSHA512(vnp_SecureHash, hashSecret);
 
-                    if (checkSignature)
-                    {
-                        if (vnp_ResponseCode == "00")
-                        {
-                            rabbitMQService.SendMessage($"Thanh toán thành công hóa đơn {orderId} | Mã giao dịch: {vnpayTranId}");
-                            return Content("<h2>Thanh toán thành công</h2>", "text/html");
-                        }
-                        else
-                        {
-                            rabbitMQService.SendMessage($"Có lỗi xảy ra trong quá trình xử lý hóa đơn {orderId} | Mã giao dịch: {vnpayTranId} | Mã lỗi: {vnp_ResponseCode}");
-                            return Content("<h2>Thanh toán không thành công</h2>", "text/html");
-                        }
-                    }
-                    else
-                    {
-                        rabbitMQService.SendMessage("Có lỗi xảy ra trong quá trình xử lý: Chữ ký không hợp lệ");
-                        return Content("<h2>Có lỗi xảy ra trong quá trình xử lý</h2>", "text/html");
-                    }
-                }
+        //            if (checkSignature)
+        //            {
+        //                if (vnp_ResponseCode == "00")
+        //                {
+        //                    rabbitMQService.SendMessage($"Thanh toán thành công hóa đơn {orderId} | Mã giao dịch: {vnpayTranId}");
+        //                    return Content("<h2>Thanh toán thành công</h2>", "text/html");
+        //                }
+        //                else
+        //                {
+        //                    rabbitMQService.SendMessage($"Có lỗi xảy ra trong quá trình xử lý hóa đơn {orderId} | Mã giao dịch: {vnpayTranId} | Mã lỗi: {vnp_ResponseCode}");
+        //                    return Content("<h2>Thanh toán không thành công</h2>", "text/html");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                rabbitMQService.SendMessage("Có lỗi xảy ra trong quá trình xử lý: Chữ ký không hợp lệ");
+        //                return Content("<h2>Có lỗi xảy ra trong quá trình xử lý</h2>", "text/html");
+        //            }
+        //        }
 
-                rabbitMQService.SendMessage("Có lỗi xảy ra trong quá trình xử lý: Không có dữ liệu trả về");
-                return Content("<h2>Có lỗi xảy ra trong quá trình xử lý: Không có dữ liệu trả về</h2>", "text/html");
-            }
+        //        rabbitMQService.SendMessage("Có lỗi xảy ra trong quá trình xử lý: Không có dữ liệu trả về");
+        //        return Content("<h2>Có lỗi xảy ra trong quá trình xử lý: Không có dữ liệu trả về</h2>", "text/html");
+        //    }
 
     }
 }

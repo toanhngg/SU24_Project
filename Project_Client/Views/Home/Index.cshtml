@@ -506,9 +506,11 @@
                         <div class="col-lg-4 col-md-6">
                             <input type="text" class="form-control" name="phone" id="phoneCus" placeholder="Your Phone">
                             <div class="validate"></div>
-                        </div>
+                        </div>                       
                         <div class="col-lg-4 col-md-6">
-                            <input type="text" class="form-control" name="address" id="addressCus" placeholder="Your Table">
+                            <select id="tableDropdown" class="form-control" name="table">
+                                <option value="">Select a table</option>
+                            </select>
                             <div class="validate"></div>
                         </div>
                     </div>
@@ -518,10 +520,9 @@
                         <textarea class="form-control" name="message" rows="5" placeholder="Message"></textarea>
                     </div>
                     <div class="mb-3">
-                        <div class="loading">Loading</div>
+                        @* <div class="loading">Loading</div>
                         <div class="error-message"></div>
-                        <div class="sent-message">
-                        </div>
+                        <div class="sent-message"></div> *@
                     </div>
                     <div>
                         <p id="total" style="color:#CE1212; font-size:25px;">Total: $0.00</p>
@@ -746,28 +747,41 @@
             return false; // Prevent the default link action
         }
     }
-    document.getElementById("bookingForm").addEventListener("submit", async function (event) {
+    document.addEventListener("DOMContentLoaded", function () {
+        // Gọi API để lấy danh sách các table khi trang được tải
+        fetch("https://localhost:7135/api/Table")
+            .then(response => response.json())
+            .then(data => {
+                const dropdown = document.getElementById("tableDropdown");
+                data.forEach(table => {
+                    const option = document.createElement("option");
+                    option.value = table.id; // Sử dụng ID của table làm giá trị
+                    option.textContent = `${table.name} - ${table.position} (${table.numberOfPeople} people)`;
+                    dropdown.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching tables:', error);
+            });
+    });
+
+    document.getElementById("orderForm").addEventListener("submit", async function (event) {
         event.preventDefault(); // Ngăn chặn form gửi đi mặc định
 
-        const name = document.getElementById("name").value;
-        const email = document.getElementById("email").value;
-        const phone = document.getElementById("phone").value;
-        const date = document.getElementById("date").value;
-        const time = document.getElementById("time").value;
-        const people = document.getElementById("people").value;
-        const message = document.getElementById("message").value;
+        const name = document.getElementById("nameCus").value;
+        const email = document.getElementById("emailCus").value;
+        const phone = document.getElementById("phoneCus").value;
+        const table = document.getElementById("tableDropdown").value; // Lấy giá trị từ dropdown
+        const message = document.querySelector("textarea[name='message']").value;
 
-        const bookingRequest = {
+        const orderRequest = {
             customer: {
-                id: 0, // Nếu không có ID, có thể bỏ qua hoặc để giá trị mặc định
                 name: name,
                 email: email,
                 phone: phone
             },
-            date: date,
-            time: time,
-            numberOfPeople: parseInt(people),
-            note: message
+            table: table, // Chỉ gửi thông tin về table
+            message: message
         };
 
         try {
@@ -776,18 +790,17 @@
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(bookingRequest)
+                body: JSON.stringify(orderRequest)
             });
 
             if (response.ok) {
-                // Hiển thị modal thông báo thành công
-                var myModal = new bootstrap.Modal(document.getElementById('successModal'));
-                myModal.show();
-
                 document.querySelector(".sent-message").style.display = "block";
                 document.querySelector(".error-message").style.display = "none";
             } else {
-                console.error('Error:', response.statusText);
+                const errorData = await response.json();
+                document.querySelector(".error-message").innerText = errorData.title || "Error occurred";
+                document.querySelector(".error-message").style.display = "block";
+                document.querySelector(".sent-message").style.display = "none";
             }
         } catch (error) {
             document.querySelector(".error-message").innerText = error.message;

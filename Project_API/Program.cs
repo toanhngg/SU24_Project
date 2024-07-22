@@ -13,14 +13,14 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ");
-        string hostName = rabbitMqConfig["HostName"];
-        string userName = rabbitMqConfig["UserName"];
-        string password = rabbitMqConfig["Password"];
+        //var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ");
+        //string hostName = rabbitMqConfig["HostName"];
+        //string userName = rabbitMqConfig["UserName"];
+        //string password = rabbitMqConfig["Password"];
 
-        // Thêm RabbitMQService vào DI container
-        builder.Services.AddRabbitMQ(hostName, userName, password);
-        builder.Services.AddSingleton<RabbitMQService>();
+        //// Thêm RabbitMQService vào DI container
+        //builder.Services.AddRabbitMQ(hostName, userName, password);
+        //builder.Services.AddSingleton<RabbitMQService>();
 
         // Cấu hình DbContext
         builder.Services.AddDbContext<PizzaLabContext>(options =>
