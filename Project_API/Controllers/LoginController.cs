@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Project_API.DTO;
 using Project_API.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -39,22 +40,69 @@ namespace Project_API.Controllers
             // Tạo JWT
             var tokenString = GenerateJSONWebToken(user);
 
-       
+
 
             // Trả về JWT trong response body nếu cần
             return Ok(new { token = tokenString });
         }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegister user)
+        {
+            // Validate user input
+            if (user == null)
+            {
+                return BadRequest(new { success = false, message = "Invalid user data" });
+            }
+
+            // Create a new user object
+            var newUser = new User
+            {
+                Email = user.Email,
+                Password = user.Password, // Consider hashing the password before storing it
+                Phone = user.Phone,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ContactName = user.ContactName,
+                RoleId = 3,
+                Active = true
+            };
+
+            // Add the new user to the database
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+            var newuser = new UserModel
+            {
+                Email = user.Email,
+                RoleId = user.RoleId
+            };
+            // Create a JWT token (simplified example, customize as needed)
+            var jwtToken = GenerateJSONWebToken(newuser);
+
+            // Set the JWT token as a cookie
+            Response.Cookies.Append("authToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                HttpOnly = true, // Cookie only accessible via server
+                Secure = true, // Only send cookie over HTTPS
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict, // Only send cookie within the same site
+                Expires = DateTime.UtcNow.AddHours(1), // Cookie expiration time
+                Path = "/" // Ensure the cookie is available to all paths
+            });
+
+            // Return success response
+            return Ok(new { success = true, message = "User registered successfully", token = jwtToken });
+        }
+
 
         [HttpGet("GetAuthToken")]
-public IActionResult GetAuthToken()
-{
-    var authToken = Request.Cookies["authToken"];
-    if (string.IsNullOrEmpty(authToken))
-    {
-        return BadRequest(new { title = "Cookie không tồn tại hoặc không có giá trị." });
-    }
-    return Ok(new { authToken = authToken });
-}
+        public IActionResult GetAuthToken()
+        {
+            var authToken = Request.Cookies["authToken"];
+            if (string.IsNullOrEmpty(authToken))
+            {
+                return BadRequest(new { title = "Cookie không tồn tại hoặc không có giá trị." });
+            }
+            return Ok(new { authToken = authToken });
+        }
 
 
         private string GenerateJSONWebToken(UserModel userInfo)

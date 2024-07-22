@@ -1,4 +1,17 @@
-﻿<!DOCTYPE html>
+﻿@{
+    string roleIdString = TempData["RoleId"] as string;
+    int? roleID = null;
+
+    if (!string.IsNullOrEmpty(roleIdString))
+    {
+        int parsedRoleId;
+        if (int.TryParse(roleIdString, out parsedRoleId))
+        {
+            roleID = parsedRoleId;
+        }
+    }
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -97,7 +110,7 @@
 </head>
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
-        <a class="navbar-brand ps-3" href="index.html">Start Bootstrap</a>
+        <a class="navbar-brand ps-3" href="index.html">Yummy Restaurant</a>
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!">
             <i class="fas fa-bars"></i>
         </button>
@@ -129,6 +142,10 @@
                 <div class="sb-sidenav-menu">
                     <div class="nav">
                         <div class="sb-sidenav-menu-heading">Core</div>
+                        <a class="nav-link" asp-controller="Admin" asp-action="ViewHomePage">
+                            <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
+                            ViewHomePage
+                        </a>
                         <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                             Booking
@@ -138,10 +155,23 @@
                             <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
                             Product
                         </a>
-                        <a class="nav-link" asp-controller="Admin" asp-action="IndexOrder">
-                            <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
-                            Order
-                        </a>
+                        @if (roleID == 2)
+                        {
+                            // Hiển thị liên kết nếu roleID bằng 2
+                            <a class="nav-link" asp-controller="Admin" asp-action="IndexOrder">
+                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                                Order
+                            </a>
+                        }
+                        else
+                        {
+                            // Hiển thị liên kết khác nếu roleID không phải là 2
+                            <a class="nav-link" asp-controller="Employee" asp-action="IndexOrder">
+                                <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                                Order
+                            </a>
+                        }
+                     
                         <a class="nav-link" asp-controller="Admin" asp-action="IndexCategory">
                             <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
                             Category
@@ -151,10 +181,17 @@
                             User
                         </a>
                         <div class="sb-sidenav-menu-heading">Addons</div>
-                        <a class="nav-link" asp-controller="Admin" asp-action="Charts">
+                        @if (roleID == 2)
+                        {
+                            <a class="nav-link" asp-controller="Admin" asp-action="IndexChart">
+                                <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
+                                Charts
+                            </a>
+                        }
+          @*               <a class="nav-link" asp-controller="Admin" asp-action="Charts">
                             <div class="sb-nav-link-icon"><i class="fas fa-chart-area"></i></div>
                             Charts
-                        </a>
+                        </a> *@
                         <a class="nav-link" asp-controller="Admin" asp-action="Tables">
                             <div class="sb-nav-link-icon"><i class="fas fa-table"></i></div>
                             Tables
@@ -163,7 +200,7 @@
                 </div>
                 <div class="sb-sidenav-footer">
                     <div class="small">Logged in as:</div>
-                    Start Bootstrap
+                    Yummy Restaurant
                 </div>
             </nav>
         </div>

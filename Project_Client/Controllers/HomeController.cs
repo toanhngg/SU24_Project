@@ -35,11 +35,11 @@ namespace Project_Client.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userEmail = HttpContext.Session.GetString("UserEmail");
-            if (userEmail == null)
-            {
-                return RedirectToAction("Login", "Home"); // Nếu không có session, chuyển hướng đến trang đăng nhập
-            }
+            //var userEmail = HttpContext.Session.GetString("UserEmail");
+            //if (userEmail == null)
+            //{
+            //    return RedirectToAction("Index", "Home"); // Nếu không có session, chuyển hướng đến trang đăng nhập
+            //}
 
             using (HttpResponseMessage res = await client.GetAsync(ProductApiUrl))
             {

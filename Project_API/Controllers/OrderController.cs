@@ -42,7 +42,7 @@ namespace Project_API.Controllers
 
                 var userEmail = emailClaim.Value.ToLower();
 
-                var user = context.Users.FirstOrDefaultAsync(x => x.Email.ToLower() == userEmail);
+                var user = context.Users.Where(x => x.Email.ToLower() == userEmail).FirstOrDefault();
                 if (user == null)
                 {
                     return BadRequest(new { title = "Người dùng không tồn tại." });
@@ -163,6 +163,23 @@ namespace Project_API.Controllers
                 return BadRequest(new { title = "Lỗi khi lấy chi tiết đơn hàng.", message = ex.Message });
             }
         }
+        [HttpGet("revenuebydate")]
+        public async Task<IActionResult> GetRevenueByDate()
+        {
+            var revenueByDate = await context.Orders
+                .GroupBy(order => new
+                {
+                    Date = order.OrderDate.Date // Nhóm theo ngày
+                })
+                .Select(group => new
+                {
+                    Date = group.Key.Date,
+                    TotalRevenue = group.Sum(order => order.Freight) // Tổng doanh thu
+                })
+                .OrderBy(x => x.Date) // Sắp xếp theo ngày
+                .ToListAsync();
 
+            return Ok(revenueByDate);
+        }
     }
 }

@@ -1,6 +1,9 @@
 ﻿@{
     Layout = "_Layout";
 }
+@using System.Linq
+@model List<Project_Client.Models.CartItem>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,7 +58,6 @@
             display: inline-flex;
             align-items: center;
         }
-
     </style>
 </head>
 <body>
@@ -79,29 +81,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if (Model != null && Model.Count > 0)
+                            @if (Model != null && Model.Any())
                             {
                                 foreach (var item in Model)
                                 {
-                                    <tr data-product-id="@item.ProductId">
-                                        <td class="p-4">
-                                            <div class="media align-items-center">
-                                                <div class="media-body d-inline-flex align-items-center">
-                                                    <img src="@item.ProductImage" class="d-block ui-w-40 ui-bordered mr-4" alt="">
-                                                    <a href="#" class="d-block text-dark mr-2">@item.ProductName</a> <br>
-
+                                    foreach (var detail in item.OrderDetails)
+                                    {
+                                        <tr data-product-id="@detail.ProductId">
+                                            <td class="p-4">
+                                                <div class="media align-items-center">
+                                                    <div class="media-body d-inline-flex align-items-center">
+                                                        @* <img src="@item.OrderDetails.FirstOrDefault().Ima" class="d-block ui-w-40 ui-bordered mr-4" alt=""> *@
+                                                        <a href="#" class="d-block text-dark mr-2">@detail.ProductName</a> <br>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td class="text-right font-weight-semibold align-middle p-4 price">$@item.Price</td>
-                                        <td class="align-middle p-4">
-                                            <input type="number" class="form-control quantity" value="@item.Quantity">
-                                        </td>
-                                        <td class="text-right font-weight-semibold align-middle p-4 total">$@(item.Price * item.Quantity)</td>
-                                        <td class="text-center align-middle px-0">
-                                            <a href="#" class="shop-tooltip close float-none text-danger" data-product-id="@item.ProductId" title="Remove">×</a>
-                                        </td>
-                                    </tr>
+                                            </td>
+                                            <td class="text-right font-weight-semibold align-middle p-4 price">$@detail.Price</td>
+                                            <td class="align-middle p-4">
+                                                <input type="number" class="form-control quantity" value="@detail.Quantity">
+                                            </td>
+                                            <td class="text-right font-weight-semibold align-middle p-4 total">$@(detail.Price * detail.Quantity)</td>
+                                            <td class="text-center align-middle px-0">
+                                                <a href="#" class="shop-tooltip close float-none text-danger" data-product-id="@detail.ProductId" title="Remove">×</a>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
                             }
                             else
@@ -124,7 +128,8 @@
                         <div class="text-right mt-4 mr-5">
                             <label class="text-muted font-weight-normal m-0">Discount</label>
                             <div class="text-large"><strong>$20</strong></div>
-                        </div>  &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;
+                        </div>
+                        &nbsp;  &nbsp;  &nbsp;  &nbsp;  &nbsp;
                         <div class="text-right mt-4">
                             <label class="text-muted font-weight-normal m-0">Total price</label>
                             <div class="text-large"><strong><span id="totalPrice"></span></strong></div>
@@ -134,7 +139,7 @@
 
                 <div class="float-right">
                     <button type="button" class="btn btn-lg btn-default md-btn-flat mt-2 mr-3">Back to shopping</button>
-                    <button type="button" class="btn btn-lg btn-primary mt-2">Checkout</button>
+                    <button type="button" class="btn btn-lg btn-primary mt-2" id="orderButton">Order</button>
                 </div>
 
             </div>
@@ -205,6 +210,25 @@
                     },
                     error: function (error) {
                         alert('Failed to remove product from cart.');
+                    }
+                });
+            });
+
+            // Handle order submission
+            $('#orderButton').click(function () {
+                $.ajax({
+                    type: 'POST',
+                    url: '/Cart/SubmitOrder',
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Order submitted successfully!');
+                            location.reload(); // Refresh page after successful submission
+                        } else {
+                            alert('Failed to submit order.');
+                        }
+                    },
+                    error: function (error) {
+                        alert('Error submitting order:', error);
                     }
                 });
             });

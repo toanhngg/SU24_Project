@@ -127,7 +127,7 @@ namespace BookingService.Controllers
 
                 PublishBookingEvent(request.Customer, booking.Id);
 
-                return Ok(new { title = "Booking successfully confirmed." });
+                return Ok(booking);
             }
             catch (Exception ex)
             {
@@ -265,7 +265,21 @@ namespace BookingService.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        [HttpGet("bookingsbydate")]
+        public async Task<IActionResult> GetBookingsByDate()
+        {
+            var bookings = await _context.Bookings
+         .GroupBy(b => b.DateBooking.HasValue ? b.DateBooking.Value.Date : (DateTime?)null)
+         .Select(g => new
+         {
+             Date = g.Key,
+             NumberOfBookings = g.Count()
+         })
+         .OrderBy(b => b.Date)
+         .ToListAsync();
 
+            return Ok(bookings);
+        }
         [HttpPost("UpdateBooking")]
         public async Task<IActionResult> UpdateBooking([FromBody] BookingUpdateDTO req)
         {

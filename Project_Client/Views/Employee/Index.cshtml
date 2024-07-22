@@ -1,5 +1,5 @@
 ﻿@{
-    Layout = "_Layout";
+    Layout = "_EmployeeLayout";
 }
 
 <section id="hero" class="hero d-flex align-items-center section-bg">
@@ -583,6 +583,7 @@
                         <div class="validate"></div>
                     </div>
                     <div class="mb-3">
+                        <div class="loading">Loading</div>
                         <div class="error-message"></div>
                         <div class="sent-message">Your booking request was sent. We will call back or send an Email to confirm your reservation. Thank you!</div>
                     </div>
@@ -704,26 +705,10 @@
 
     </div>
 </section><!-- End Contact Section -->
+    </main><!-- End #main -->
 <!-- End Footer -->
 
 <a href="#" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-<!-- Modal thông báo thành công -->
-<div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="successModalLabel">Thông Báo</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Booking thành công!
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <div id="preloader"></div>
 
@@ -746,6 +731,8 @@
             return false; // Prevent the default link action
         }
     }
+</script>
+<script>
     document.getElementById("bookingForm").addEventListener("submit", async function (event) {
         event.preventDefault(); // Ngăn chặn form gửi đi mặc định
 
@@ -780,14 +767,13 @@
             });
 
             if (response.ok) {
-                // Hiển thị modal thông báo thành công
-                var myModal = new bootstrap.Modal(document.getElementById('successModal'));
-                myModal.show();
-
                 document.querySelector(".sent-message").style.display = "block";
                 document.querySelector(".error-message").style.display = "none";
             } else {
-                console.error('Error:', response.statusText);
+                const errorData = await response.json();
+                document.querySelector(".error-message").innerText = errorData.title || "Error occurred";
+                document.querySelector(".error-message").style.display = "block";
+                document.querySelector(".sent-message").style.display = "none";
             }
         } catch (error) {
             document.querySelector(".error-message").innerText = error.message;

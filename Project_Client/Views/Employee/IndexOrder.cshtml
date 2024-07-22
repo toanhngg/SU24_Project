@@ -59,9 +59,9 @@
                             <!-- Order details will be loaded here -->
                         </tbody>
                     </table>
-                 @*    <div id="paymentButton" style="display: none; margin-top: 10px;">
+                    <div id="paymentButton" style="display: none; margin-top: 10px;">
                         <button class="btn btn-success" onclick="payOrder()">Pay</button>
-                    </div> *@
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,7 +160,7 @@
                 currentFreight = freight;
 
                 // Check if status is 0 or null
-                if (order.isCheck === 0 || order.isCheck === null) {
+                if (order.isCheck === false || order.isCheck === null) {
                     document.getElementById('paymentButton').style.display = 'block';
                 } else {
                     document.getElementById('paymentButton').style.display = 'none';
@@ -170,29 +170,33 @@
     }
 
     function payOrder() {
-        if (currentOrderId && currentFreight) {
-            const requestBody = {
-                orderId: currentOrderId,
-                amount: currentFreight,
-                provider: '4505023455'
-            };
+        const userConfirmed = confirm('Bạn có muốn thanh toán không?');
 
-            console.log('Request Body:', JSON.stringify(requestBody)); // Kiểm tra dữ liệu gửi đi
+        if (userConfirmed) {
+            if (currentOrderId && currentFreight) {
+                const requestBody = {
+                    orderId: currentOrderId,
+                    amount: currentFreight,
+                    provider: '4505023455'
+                };
 
-            fetch('https://localhost:7135/api/VNPay', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody),
-            })
-                .then(response => response.text()) // Đọc phản hồi dưới dạng văn bản
-                .then(paymentUrl => {
-                    // Mở URL thanh toán trong cửa sổ mới
-                    console.log('Payment URL:', paymentUrl); // Kiểm tra URL nhận được
-                    window.open(paymentUrl, '_blank'); // Mở URL thanh toán
+                console.log('Request Body:', JSON.stringify(requestBody)); // Kiểm tra dữ liệu gửi đi
+
+                fetch('https://localhost:7135/api/VNPay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody),
                 })
-                .catch(error => console.error('Error:', error));
+                    .then(response => response.text()) // Đọc phản hồi dưới dạng văn bản
+                    .then(paymentUrl => {
+                        // Mở URL thanh toán trong cửa sổ mới
+                        console.log('Payment URL:', paymentUrl); // Kiểm tra URL nhận được
+                        window.open(paymentUrl, '_blank'); // Mở URL thanh toán
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
         }
     }
 
