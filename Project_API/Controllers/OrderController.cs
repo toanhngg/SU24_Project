@@ -90,6 +90,63 @@ namespace Project_API.Controllers
             }
 
         }
+
+
+        [HttpGet("GetbyDate/{startDate}/{endDate}")]
+        public async Task<IActionResult> GetOrders(string startDate = null, string endDate = null)
+        {
+            try
+            {
+                IQueryable<Order> query = context.Orders.Include(o => o.Customer);
+
+                DateTime? parsedStartDate = null;
+                DateTime? parsedEndDate = null;
+
+                // Chuyển đổi các tham số ngày từ chuỗi sang DateTime nếu chúng không phải null
+                if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime startDateValue))
+                {
+                    parsedStartDate = startDateValue.Date;
+                }
+
+                if (!string.IsNullOrEmpty(endDate) && DateTime.TryParse(endDate, out DateTime endDateValue))
+                {
+                    parsedEndDate = endDateValue.Date;
+                }
+
+                // Nếu tham số startDate được cung cấp, lọc các đơn hàng từ ngày bắt đầu
+                if (parsedStartDate.HasValue)
+                {
+                    query = query.Where(o => o.OrderDate.Date >= parsedStartDate.Value);
+                }
+
+                // Nếu tham số endDate được cung cấp, lọc các đơn hàng đến ngày kết thúc
+                if (parsedEndDate.HasValue)
+                {
+                    query = query.Where(o => o.OrderDate.Date <= parsedEndDate.Value);
+                }
+
+                var orders = await query
+                    .Select(o => new
+                    {
+                        o.Id,
+                        o.OrderDate,
+                        o.IsCart,
+                        o.IsCheck,
+                        o.Freight,
+                        o.TableAdress,
+                        CustomerName = o.Customer.Name,
+                        CustomerEmail = o.Customer.Email
+                    })
+                    .ToListAsync();
+
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { title = "Lỗi khi lấy danh sách đơn hàng.", message = ex.Message });
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
@@ -163,6 +220,9 @@ namespace Project_API.Controllers
                 return BadRequest(new { title = "Lỗi khi lấy chi tiết đơn hàng.", message = ex.Message });
             }
         }
+
+        
+
         [HttpGet("revenuebydate")]
         public async Task<IActionResult> GetRevenueByDate()
         {
