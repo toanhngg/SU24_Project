@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Project_API.DTO;
 using Project_API.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -29,17 +30,80 @@ namespace Project_API.Controllers
         [HttpPost]
         public IActionResult Login([FromBody] UserModel login)
         {
-            IActionResult response = Unauthorized();
+            // Xác thực người dùng
             var user = AuthenticateUser(login);
-
-            if (user != null)
+            if (user == null)
             {
-                var tokenString = GenerateJSONWebToken(user);
-                response = Ok(new { token = tokenString });
+                return Unauthorized(); // Trả về Unauthorized nếu người dùng không hợp lệ
             }
 
-            return response;
+            // Tạo JWT
+            var tokenString = GenerateJSONWebToken(user);
+
+
+
+            // Trả về JWT trong response body nếu cần
+            return Ok(new { token = tokenString });
         }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegister user)
+        {
+            // Validate user input
+            if (user == null)
+            {
+                return BadRequest(new { success = false, message = "Invalid user data" });
+            }
+
+            // Create a new user object
+            var newUser = new User
+            {
+                Email = user.Email,
+                Password = user.Password, // Consider hashing the password before storing it
+                Phone = user.Phone,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                ContactName = user.ContactName,
+                RoleId = 3,
+                Active = true
+            };
+
+            // Add the new user to the database
+            _context.Users.Add(newUser);
+            await _context.SaveChangesAsync();
+            var newuser = new UserModel
+            {
+                Email = user.Email,
+                RoleId = user.RoleId
+            };
+            // Create a JWT token (simplified example, customize as needed)
+            var jwtToken = GenerateJSONWebToken(newuser);
+
+            // Set the JWT token as a cookie
+            Response.Cookies.Append("authToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                HttpOnly = true, // Cookie only accessible via server
+                Secure = true, // Only send cookie over HTTPS
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict, // Only send cookie within the same site
+                Expires = DateTime.UtcNow.AddHours(1), // Cookie expiration time
+                Path = "/" // Ensure the cookie is available to all paths
+            });
+
+            // Return success response
+            return Ok(new { success = true, message = "User registered successfully", token = jwtToken });
+        }
+
+
+        [HttpGet("GetAuthToken")]
+        public IActionResult GetAuthToken()
+        {
+            var authToken = Request.Cookies["authToken"];
+            if (string.IsNullOrEmpty(authToken))
+            {
+                return BadRequest(new { title = "Cookie không tồn tại hoặc không có giá trị." });
+            }
+            return Ok(new { authToken = authToken });
+        }
+
 
         private string GenerateJSONWebToken(UserModel userInfo)
         {
@@ -62,16 +126,27 @@ namespace Project_API.Controllers
         private UserModel AuthenticateUser(UserModel login)
         {
             UserModel user = null;
-            User us = _context.Users.Where(x=> x.Email == login.Email && x.Password == login.Password).FirstOrDefault();
+            User us = _context.Users.Where(x => x.Email == login.Email && x.Password == login.Password).FirstOrDefault();
             //Validate the User Credentials
             //Demo Purpose, I have Passed HardCoded User Information
             if (us != null)
             {
-                user = new UserModel { 
-                    Email = us.Email, 
-                    RoleId = us.RoleId };
+                user = new UserModel
+                {
+                    Email = us.Email,
+                    RoleId = us.RoleId
+                };
             }
             return user;
+        }
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            // Xóa cookie xác thực
+            await HttpContext.SignOutAsync();
+
+            // Trả về phản hồi thành công
+            return Ok(new { message = "Logged out successfully" });
         }
         [HttpGet]
         [Authorize]

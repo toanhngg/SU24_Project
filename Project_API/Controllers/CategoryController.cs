@@ -13,12 +13,14 @@ namespace Project_API.Controllers
     {
         PizzaLabContext context = new PizzaLabContext();
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult getCategory()
         {
             var category = context.Categories.ToList();
             return Ok(category);
         }
         [HttpGet("GetCategory/{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
             var category = await context.Categories.FindAsync(id);

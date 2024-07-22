@@ -1,6 +1,6 @@
-﻿
-const apiUrl = 'https://localhost:7135/api/Products';
+﻿const apiUrl = 'https://localhost:7135/api/Products';
 let productList = [];
+let authToken = '';
 
 async function fetchProducts() {
     try {
@@ -19,7 +19,6 @@ async function fetchProducts() {
 function updateSelectors() {
     const selectors = document.querySelectorAll('.item-select');
     selectors.forEach(selector => {
-        // Kiểm tra selector có tồn tại không
         if (selector) {
             const selectedValue = selector.value;
             selector.innerHTML = '<option value="" data-price="0">Select Item</option>';
@@ -50,22 +49,22 @@ function addItem() {
     const newItem = document.createElement('div');
     newItem.className = 'row gy-4 order-item';
     newItem.innerHTML = `
-                                <div class="col-lg-5 col-md-6">
-                                    <select class="form-control item-select" name="item[]" onchange="updatePrice(this)">
-                                        <option value="" data-price="0">Select Item</option>
-                                    </select>
-                                </div>
-                                <div class="col-lg-3 col-md-6">
-                                    <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" value="1" min="1" onchange="updatePrice(this)">
-                                </div>
-                                <div class="col-lg-2 col-md-6">
-                                    <input type="text" class="form-control price" name="price[]" placeholder="Price" readonly>
-                                </div>
-                                <div class="col-lg-2 col-md-6 d-flex align-items-center">
-                                    <button type="button" class="btn btn-custom btn-success" onclick="addItem()">+</button>
-                                    <button type="button" class="btn btn-custom btn-danger ms-2" onclick="removeItem(this)" style="display:none;">-</button>
-                                </div>
-                            `;
+        <div class="col-lg-5 col-md-6">
+            <select class="form-control item-select" name="item[]" onchange="updatePrice(this)">
+                <option value="" data-price="0">Select Item</option>
+            </select>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" value="1" min="1" onchange="updatePrice(this)">
+        </div>
+        <div class="col-lg-2 col-md-6">
+            <input type="text" class="form-control price" name="price[]" placeholder="Price" readonly>
+        </div>
+        <div class="col-lg-2 col-md-6 d-flex align-items-center">
+            <button type="button" class="btn btn-custom btn-success" onclick="addItem()">+</button>
+            <button type="button" class="btn btn-custom btn-danger ms-2" onclick="removeItem(this)" style="display:none;">-</button>
+        </div>
+    `;
     orderItems.appendChild(newItem);
     updateSelectors();
     updateButtons();
@@ -89,6 +88,22 @@ function updateButtons() {
     });
 }
 
+//async function getAuthToken() {
+//    fetch('https://localhost:7135/api/Login/GetAuthToken', {
+//        method: 'GET',
+//        headers: {
+//            'Content-Type': 'application/json'
+//        },
+//        credentials: 'include' // Đảm bảo rằng cookie được gửi cùng với yêu cầu
+//    })
+//        .then(response => response.json())
+//        .then(data => {
+//            console.log("Auth token:", data); // Assuming `data` contains the auth token
+//        })
+//        .catch(error => console.error('Error:', error));
+
+//}
+
 function updateTotal() {
     let total = 0;
     document.querySelectorAll('.order-item').forEach(item => {
@@ -108,22 +123,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const formElement = document.getElementById('orderForm');
     if (formElement) {
-        formElement.addEventListener('submit', function (event) {
-            console.log("Form submitted!");
-
+        formElement.addEventListener('submit', async function (event) {
             event.preventDefault();
+
             const orderDetails = [];
             let total = 0;
 
             document.querySelectorAll('.order-item').forEach(item => {
                 const productId = item.querySelector('.item-select').value;
                 const quantity = item.querySelector('.quantity').value;
-
-                console.log("Processing item!");
                 const price = item.querySelector('.item-select option:checked').getAttribute('data-price');
+
                 if (productId && quantity && price) {
                     const itemTotal = price * parseInt(quantity);
-
 
                     orderDetails.push({
                         productId: parseInt(productId),
@@ -134,15 +146,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     total += itemTotal;
                 }
             });
+
             const addressCus = document.getElementById('addressCus').value;
             const phoneCus = document.getElementById('phoneCus').value;
             const nameCus = document.getElementById('nameCus').value;
             const emailCus = document.getElementById('emailCus').value;
-           const customer = {
+
+            const customer = {
                 phone: phoneCus,
                 email: emailCus,
                 name: nameCus
             };
+
             const orderData = {
                 freight: total,
                 tableAdress: addressCus,
@@ -150,24 +165,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 orderDetails: orderDetails
             };
 
-            fetch('https://localhost:7135/api/Order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(JSON.stringify(orderData));
-                    alert('Order successfully created!');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+            try {
+                const response = await fetch('https://localhost:7135/api/Order', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include' ,// Đảm bảo rằng cookie được gửi cùng với yêu cầu
+                    body: JSON.stringify(orderData)
                 });
+                console.log(JSON.stringify(orderData))
+                if (!response.ok) {
+                    const errorText = await response.text(); // Lấy nội dung lỗi từ phản hồi
+                    throw new Error(`Network response was not ok: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Order Data:', orderData);
+                alert('Order successfully created!');
+            } catch (error) {
+                console.error('Error:', error);
+            }
         });
     } else {
         console.error('Form element with id "orderForm" not found.');
     }
 });
-

@@ -44,6 +44,7 @@ namespace Project_Client
             });
 
             var app = builder.Build();
+            app.UseWebSockets();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())

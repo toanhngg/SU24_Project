@@ -1,19 +1,14 @@
-﻿<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+﻿@{
+    Layout = "_Layout";
+}
+<title>eCommerce Product Detail</title>
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
+<link href="~/css/detailproduct.css" rel="stylesheet">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <title>eCommerce Product Detail</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet">
-    <link href="~/css/detailproduct.css" rel="stylesheet">
-
-</head>
 <style>
     .cart-button {
         position: relative;
@@ -26,13 +21,13 @@
         font-size: 16px;
         cursor: pointer;
         text-decoration: none;
-        font-size: 1.5rem; /* Tăng kích thước font để biểu tượng lớn hơn */
+        font-size: 1.5rem; /* Increase font size for larger icon */
     }
 
         .cart-button .fa-shopping-cart {
             margin-right: 5px;
-            height: 2rem; /* Chiều cao của biểu tượng */
-            width: 2rem; /* Chiều rộng của biểu tượng */
+            height: 2rem; /* Height of the icon */
+            width: 2rem; /* Width of the icon */
         }
 
     .cart-count {
@@ -46,96 +41,228 @@
         right: -10px;
     }
 
+    .review {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+        .review:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-color: #007bff;
+        }
+
+    .review-user {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+
+    .review-content {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .review-date {
+        font-size: 12px;
+        color: #888;
+        text-align: right;
+        margin-top: 10px;
+    }
 </style>
 
-<body>
-    <div class="container">
-        <div class="card">
-            <div class="container-fluid">
-                <div class="wrapper row">
-                    @{
-                        var detail = ViewBag.Productdetail;
-                    }
-                    @if (detail == null)
-                    {
-                        <p>Product details are not available.</p>
-                    }
-                    else
-                    {
-                        <div class="row">
-                            <div class="preview col-md-6">
-                                <div class="preview-pic tab-content">
-                                    <div class="tab-pane active" id="pic-1">
-                                        <img src="@detail.Image" alt="@detail.Name" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="details col-md-6">
-                                <h3 class="product-title">@detail?.Name</h3>
-                                <p class="product-description">@detail?.Description</p>
-                                <h4 class="price">Price: <span>$@(detail?.Price?.ToString("F2") ?? "0.00")</span></h4>
-                                <h4 class="price">Category: <span>@(detail?.CategoryName)</span></h4>
-                                <p class="vote"><strong>Weight: </strong>@(detail?.Weight ?? "N/A")<strong></strong></p>
-                                <div class="action">
-                                    <button class="add-to-cart btn btn-default" type="button">Add to Cart</button>
+<div class="container">
+    <div class="card">
+        <div class="container-fluid">
+            <div class="wrapper row">
+                @{
+                    var detail = ViewBag.Productdetail;
+                }
+                @if (detail == null)
+                {
+                    <p>Product details are not available.</p>
+                }
+                else
+                {
+                    var imageSrc = @detail?.Image.StartsWith("data:image/") ? @detail?.Image : "data:image/jpeg;base64," + @detail?.Image;
 
-                                    <button class="like btn btn-default" type="button"><span class="fa fa-heart"></span></button>
+                    <div class="row">
+                        <div class="preview col-md-6">
+                            <div class="preview-pic tab-content">
+                                <div class="tab-pane active" id="pic-1">
+                                    <img src="@imageSrc" alt="@detail.Name" />
                                 </div>
                             </div>
                         </div>
-                    }
-                </div>
-
-                <div class="review-section">
-                    <h3>Leave a Comment</h3>
-                    <form action="/Home/SubmitComment" method="post" class="form-inline">
-                        <div class="form-group">
-                            <img src="/path/to/avatar.jpg" class="img-circle" alt="User Avatar" width="50" height="50">
+                        <div class="details col-md-6">
+                            <h3 class="product-title">@detail?.Name</h3>
+                            <p class="product-description">@detail?.Description</p>
+                            <h4 class="price">Price: <span>$@(detail?.Price?.ToString("F2") ?? "0.00")</span></h4>
+                            <h4 class="price">Category: <span>@(detail?.CategoryName)</span></h4>
+                            <p class="vote"><strong>Weight: </strong>@(detail?.Weight ?? "N/A")<strong></strong></p>
+                            <div class="action">
+                                <button class="add-to-cart btn btn-default" type="button">Add to Cart</button>
+                                <button class="like btn btn-default" type="button"><span class="fa fa-heart"></span></button>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <textarea name="comment" class="form-control" rows="3" placeholder="Write your comment here..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </form>
-                </div>
-
+                    </div>
+                }
             </div>
-        </div>
+
+            <div class="review-section">
+                <h3>Leave a Comment</h3>
+                <form id="commentForm" class="form-inline">
+                    <div class="form-group">
+                        <img src="https://w7.pngwing.com/pngs/340/946/png-transparent-avatar-user-computer-icons-software-developer-avatar-child-face-heroes.png" class="img-circle" alt="User Avatar" width="50" height="50">
+                    </div>
+                    <div class="form-group">
+                        <textarea id="commentText" class="form-control" rows="3" placeholder="Write your comment here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+
+                <div id="reviewList">
+                    <!-- Reviews will be appended here -->
+                </div>
+            </div>
+
+
+                <br />
+                <br />
+                <div id="reviewList">
+                    <!-- Reviews will be appended here -->
+                </div>
+            </div>
+
     </div>
+</div>
 
-    <script>
-        $(document).ready(function () {
-            $('.add-to-cart').click(function () {
-                var productId = '@(detail?.Id)'; // Lấy ID sản phẩm từ model
-                var productName = '@Json.Serialize(detail?.Name)'; // Serialize tên sản phẩm để tránh mã hóa
-                var productPrice = '@(detail?.Price)';
-                var productImage = '@detail?.Image'; // Serialize đường dẫn hình ảnh để tránh mã hóa
+<script>
+    $(document).ready(function () {
+            var productId = '@(detail?.Id)'; // Get product ID from model
 
-                if (confirm('Do you want to add ' + productName + ' to your cart?')) {
-                    $.ajax({
-                        type: 'POST',
-                        url: '/Cart/AddToCart',
-                        data: {
-                            productId: productId,
-                            productName: productName,
-                            productImage: productImage,
-                            price: productPrice,
-                            quantity: 1
-                        },
-                        success: function (response) {
-                            console.log(response); // Sử dụng 'response' thay vì 'data'
-                            if (response.success) {
-                                alert(response.message);
-                            }
-                            // Cập nhật giỏ hàng nếu cần thiết
-                        },
-                        error: function (error) {
-                            alert('Failed to add product to cart.');
+            // Fetch reviews from API
+            $.ajax({
+                type: 'GET',
+                url: 'https://localhost:7135/api/Review/' + productId,
+                success: function (response) {
+                    var reviews = response;
+                    reviews.forEach(function (review) {
+                        var reviewHtml = '<div class="review">';
+                        reviewHtml += '<div class="review-user"><strong>' + review.userName + '</strong></div>';
+                        reviewHtml += '<div class="review-content">' + review.comment + '</div>';
+                        reviewHtml += '<div class="review-date">' + new Date(review.dateModified).toLocaleDateString() + '</div>';
+                        if (review.canDelete) {
+                            reviewHtml += '<button class="delete-review btn btn-danger" data-review-id="' + review.id + '">Delete</button>';
                         }
+                        reviewHtml += '</div>';
+                        $('#reviewList').prepend(reviewHtml);
                     });
+
+                    // Bind delete button click events
+                    $('.delete-review').click(function () {
+                        var reviewId = $(this).data('review-id');
+                        $.ajax({
+                            type: 'DELETE',
+                            url: 'https://localhost:7135/api/Review/' + reviewId,
+                            success: function (response) {
+                                if (response.success) {
+                                    alert('Review deleted successfully!');
+                                    location.reload(); // Refresh page after successful deletion
+                                } else {
+                                    alert('Failed to delete review.');
+                                }
+                            },
+                            error: function (error) {
+                                alert('Error deleting review: ' + error);
+                            }
+                        });
+                    });
+                },
+                error: function (error) {
+                    console.log('Error fetching reviews:', error);
+                }
+            });
+        // Handle form submission
+        $('#commentForm').submit(function (event) {
+            event.preventDefault(); // Prevent the default form submission
+            var productId = '@(detail?.Id)'; // Get product ID from model
+
+            var commentText = $('#commentText').val();
+            console.log(JSON.stringify({
+                comment: commentText,
+                productId: productId
+            }));
+            // Post comment to API
+            $.ajax({
+                type: 'POST',
+                url: 'https://localhost:7135/api/Review',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    comment: commentText,
+                    productId: productId
+                }),
+                xhrFields: {
+                    withCredentials: true // Ensures cookies are sent with the request
+                },
+                success: function (response) {
+                    if (response) {
+                        // Handle success (e.g., display a success message, update review list)
+                        alert('Comment submitted successfully!');
+                        $('#commentText').val(''); // Clear the textarea
+
+                        // Prepend the new review to the list
+                        var reviewHtml = '<div class="review">';
+                        reviewHtml += '<div class="review-user"><strong>' + response.userName + '</strong></div>';
+                        reviewHtml += '<div class="review-content">' + response.comment + '</div>';
+                        reviewHtml += '<div class="review-date">' + new Date(response.dateModified).toLocaleDateString() + '</div>';
+                        reviewHtml += '</div>';
+                        $('#reviewList').prepend(reviewHtml);
+                    } else {
+                        alert('Failed to submit comment.');
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // Handle error
+                    alert('Error submitting comment: ' + textStatus + ' - ' + errorThrown);
                 }
             });
         });
-    </script>
-</body>
-</html>
+        $('.add-to-cart').click(function () {
+            var productId = '@(detail?.Id)'; // Get product ID from model
+            var productName = '@Json.Serialize(detail?.Name)'; // Serialize product name to avoid encoding issues
+            var productPrice = '@(detail?.Price)';
+            var productImage = '@Json.Serialize(detail?.Image)'; // Serialize image path to avoid encoding issues
+
+            if (confirm('Do you want to add ' + productName + ' to your cart?')) {
+                $.ajax({
+                    type: 'POST',
+                    url: '/Cart/AddToCart',
+                    data: {
+                        productId: productId,
+                        productName: productName,
+                        productImage: productImage,
+                        price: productPrice,
+                        quantity: 1
+                    },
+                    success: function (response) {
+                        console.log(response); // Use 'response' instead of 'data'
+                        if (response.success) {
+                            alert(response.message);
+                        }
+                        // Update cart if needed
+                    },
+                    error: function (error) {
+                        alert('Failed to add product to cart.');
+                    }
+                });
+            }
+        });
+    });
+</script>

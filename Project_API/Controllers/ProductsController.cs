@@ -14,6 +14,7 @@ namespace Project_API.Controllers
     {
         PizzaLabContext context = new PizzaLabContext();
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult getAllProduct()
         {
             var product = context.Products.ToList();
@@ -21,6 +22,7 @@ namespace Project_API.Controllers
 
         }
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public IActionResult getProductById(int id)
         {
             if (id > 0)
@@ -39,6 +41,7 @@ namespace Project_API.Controllers
 
 
         [HttpGet("[action]")]
+        [AllowAnonymous]
         public IActionResult getProduct(int id)
         {
             if (id > 0)
@@ -174,9 +177,10 @@ namespace Project_API.Controllers
 
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
-        [HttpPut("UpdateProduct/{id}")]
+        [HttpPost("UpdateProduct/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductDTO productDto)
         {
+
             if (id != productDto.Id)
             {
                 return BadRequest("Product ID mismatch");
