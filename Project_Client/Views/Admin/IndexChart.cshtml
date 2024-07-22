@@ -1,17 +1,16 @@
 ﻿@{
     Layout = "_AdminLayout";
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charts</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .chart-container {
+        position: relative;
+        height: 500px;
+        width: 100%;
+    }
+</style>
 <h2>Charts</h2>
-<body>
     <div class="container mt-4">
         <div class="row">
             <!-- Chart 1 -->
@@ -37,6 +36,33 @@
                     </div>
                 </div>
             </div>
+            <!-- Chart 3 -->
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        Doanh Thu Theo Tháng
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="monthlyRevenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <!-- Chart 4 -->
+
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    Sản Phẩm Được Đặt Nhiều Nhất
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="mostOrderedProductsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -129,5 +155,94 @@
                 console.error('Error fetching booking data:', error);
             });
     </script>
-</body>
-</html>
+    <script>
+        // Gọi API để lấy dữ liệu doanh thu theo tháng
+        fetch('https://localhost:7135/api/Order/revenueByMonth')
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => `${item.month}/${item.year}`);
+                const revenues = data.map(item => item.totalRevenue);
+
+                const ctx = document.getElementById('monthlyRevenueChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Doanh Thu',
+                            data: revenues,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Tháng'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Doanh Thu'
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching monthly revenue data:', error);
+            });
+    </script>
+
+    <script>
+        // Gọi API để lấy dữ liệu sản phẩm được đặt nhiều nhất
+        fetch('https://localhost:7135/api/Order/mostOrderedProducts')
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => item.productName);
+                const quantities = data.map(item => item.totalQuantity);
+
+                const ctx = document.getElementById('mostOrderedProductsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Số Lượng Đặt',
+                            data: quantities,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Sản Phẩm'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Số Lượng Đặt'
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching most ordered products data:', error);
+            });
+    </script>

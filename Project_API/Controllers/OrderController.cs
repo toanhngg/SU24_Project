@@ -221,7 +221,34 @@ namespace Project_API.Controllers
             }
         }
 
-        
+        [HttpGet("mostOrderedProducts")]
+        public async Task<IActionResult> GetMostOrderedProducts()
+        {
+            try
+            {
+                var mostOrderedProducts = await context.OrderDetails
+                    .GroupBy(od => new
+                    {
+                        ProductId = od.ProductId,
+                        ProductName = od.Product.Name
+                    })
+                    .Select(group => new
+                    {
+                        ProductId = group.Key.ProductId,
+                        ProductName = group.Key.ProductName,
+                        TotalQuantity = group.Sum(od => od.Quantity)
+                    })
+                    .OrderByDescending(x => x.TotalQuantity)
+                    .ToListAsync();
+
+                return Ok(mostOrderedProducts);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { title = $"Internal server error: {ex.Message}" });
+            }
+        }
+
 
         [HttpGet("revenuebydate")]
         public async Task<IActionResult> GetRevenueByDate()
@@ -241,5 +268,28 @@ namespace Project_API.Controllers
 
             return Ok(revenueByDate);
         }
+
+        [HttpGet("revenueByMonth")]
+        public async Task<IActionResult> GetRevenueByMonth()
+        {
+            var revenueByMonth = await context.Orders
+                .GroupBy(order => new
+                {
+                    Year = order.OrderDate.Year,
+                    Month = order.OrderDate.Month
+                })
+                .Select(group => new
+                {
+                    Year = group.Key.Year,
+                    Month = group.Key.Month,
+                    TotalRevenue = group.Sum(order => order.Freight) // Assuming Freight represents revenue
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToListAsync();
+
+            return Ok(revenueByMonth);
+        }
+
     }
 }

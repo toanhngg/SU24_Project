@@ -734,9 +734,10 @@
     }
 </script>
 <script>
+
         document.addEventListener("DOMContentLoaded", function () {
             // Gọi API để lấy danh sách các table khi trang được tải
-            fetch("https://localhost:7135/api/Table")
+        fetch("https://localhost:7135/api/Table/availableTables")
                 .then(response => response.json())
                 .then(data => {
                     const dropdown = document.getElementById("tableDropdown");

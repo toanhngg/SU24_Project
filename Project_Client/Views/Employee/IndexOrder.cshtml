@@ -87,7 +87,7 @@
 
 <script>
     let currentPage = 1;
-    const recordsPerPage = 8;
+    const recordsPerPage = 5;
     let ordersData = [];
     let currentOrderId = null;
     let currentFreight = null;
@@ -203,7 +203,7 @@
                 currentFreight = freight;
 
                 // Check if status is 0 or null
-                if (order.isCheck === 0 || order.isCheck === null) {
+                if (order.isCheck === false || order.isCheck === null) {
                     document.getElementById('paymentButton').style.display = 'block';
                 } else {
                     document.getElementById('paymentButton').style.display = 'none';

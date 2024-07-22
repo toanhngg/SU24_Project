@@ -30,16 +30,12 @@ namespace Project_API.Controllers
             }
         }
         [HttpGet("availableTables")]
-        public async Task<IActionResult> GetAvailableTables([FromQuery] DateTime requestDate, [FromQuery] string requestTime)
+        public async Task<IActionResult> GetAvailableTables()
         {
             try
             {
-                if (!TimeSpan.TryParse(requestTime, out TimeSpan timeSpan))
-                {
-                    return BadRequest(new { title = "Invalid time format." });
-                }
 
-                DateTime dateStart = requestDate.Date + timeSpan;
+                DateTime dateStart = DateTime.Now;
                 TimeSpan bookingDuration = TimeSpan.FromHours(2);
                 DateTime dateCheckOut = dateStart + bookingDuration;
 
@@ -49,7 +45,7 @@ namespace Project_API.Controllers
                 // Fetch all bookings for the requested date
                 var bookings = await _context.Bookings
                     .Include(b => b.Tables) // Include related tables for each booking
-                    .Where(b => b.Date.Value.Date == requestDate.Date)
+                    .Where(b => b.Date.Value.Date == dateStart.Date)
                     .ToListAsync();
 
                 // Filter out tables that are not available during the requested period

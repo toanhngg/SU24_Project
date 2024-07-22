@@ -41,19 +41,25 @@ namespace BookingService.Controllers
             {
                 if (request.Date == null || request.Time == null)
                 {
-                    return BadRequest(new { title = "Date and Time are required." });
+                    return BadRequest(new { message = "Date and Time are required." });
                 }
 
                 if (!TimeSpan.TryParse(request.Time, out TimeSpan timeSpan))
                 {
-                    return BadRequest(new { title = "Invalid time format." });
+                    return BadRequest(new { message = "Invalid time format." });
                 }
 
                 if (request.Date < DateTime.Now.Date)
                 {
-                    return BadRequest(new { title = "Cannot book a table in the past." });
+                    return BadRequest(new { message = "Cannot book a table in the past." });
                 }
-
+                // Ensure booking is between 9 AM and midnight
+                TimeSpan startTime = new TimeSpan(9, 0, 0); // 9:00 AM
+                TimeSpan endTime = new TimeSpan(23, 59, 59); // 11:59:59 PM
+                if (timeSpan < startTime || timeSpan > endTime)
+                {
+                    return BadRequest(new { message = "Bookings are only allowed between 9 AM and midnight." });
+                }
                 TimeSpan bookingDuration = TimeSpan.FromHours(2);
                 DateTime dateStart = request.Date.Value.Date + timeSpan;
                 DateTime dateCheckOut = dateStart + bookingDuration;
@@ -89,7 +95,7 @@ namespace BookingService.Controllers
 
                 if (totalCapacity < request.NumberOfPeople)
                 {
-                    return BadRequest(new { title = "No available tables for the requested number of people." });
+                    return BadRequest(new { message = "No available tables for the requested number of people." });
                 }
 
                 // Create a new booking
@@ -119,7 +125,7 @@ namespace BookingService.Controllers
 
                 if (remainingPeople > 0)
                 {
-                    return BadRequest(new { title = "Not enough tables to accommodate the requested number of people." });
+                    return BadRequest(new { message = "Not enough tables to accommodate the requested number of people." });
                 }
 
                 _context.Bookings.Add(booking);
@@ -127,13 +133,22 @@ namespace BookingService.Controllers
 
                 PublishBookingEvent(request.Customer, booking.Id);
 
-                return Ok(booking);
+                return Ok();
             }
             catch (Exception ex)
             {
-                return BadRequest(new { title = $"Internal server error: {ex.Message}" });
+                return BadRequest(new { message = $"Internal server error: {ex.Message}" });
             }
         }
+       
+        public class TimeSlot
+        {
+            public DateTime StartTime { get; set; }
+            public DateTime EndTime { get; set; }
+            public List<Table> AvailableTables { get; set; }
+        }
+
+
         [HttpDelete("Abort/{id}")]
         public async Task<IActionResult> Delete(int id)
         {

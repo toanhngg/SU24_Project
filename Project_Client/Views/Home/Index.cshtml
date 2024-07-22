@@ -452,92 +452,6 @@
     </div>
 </section><!-- End Chefs Section -->
 <!-- ======= Order Now ======= -->
-<section id="order-now" class="book-a-table">
-    <div class="container" data-aos="fade-up">
-
-        <div class="section-header">
-            <h2>Order now</h2>
-            <p>Order to <span> Enjoy</span> With Us</p>
-        </div>
-
-
-        <div class="row g-0">
-
-            <div class="col-lg-4 reservation-img" style="background-image: url(../assets/img/tiep-nhan-yeu-cau-tu-thuc-khach.jpg);" data-aos="zoom-out" data-aos-delay="200"></div>
-
-            <div class="col-lg-8 d-flex align-items-center reservation-form-bg">
-                <form id="orderForm" role="form" class="php-email-form" data-aos="fade-up" data-aos-delay="100">
-
-
-                    <!-- New fields for selecting items -->
-                    <div id="order-items">
-                        <div class="row gy-4 order-item">
-                            <div class="col-lg-5 col-md-6">
-                                <select class="form-control item-select" name="item[]" onchange="updatePrice(this)">
-                                    <option value="" data-price="0">Select Item</option>
-                                    <option value="item1" data-price="10">Item 1 - $10</option>
-                                    <option value="item2" data-price="15">Item 2 - $15</option>
-                                    <!-- Add more items here -->
-                                </select>
-                            </div>
-                            <div class="col-lg-3 col-md-6">
-                                <input type="number" class="form-control quantity" name="quantity[]" placeholder="Quantity" value="1" min="1" onchange="updatePrice(this)">
-                            </div>
-                            <div class="col-lg-2 col-md-6">
-                                <input type="text" class="form-control price" name="price[]" placeholder="Price" readonly>
-                            </div>
-                            <div class="col-lg-2 col-md-6 d-flex align-items-center">
-                                <button type="button" class="btn btn-custom btn-success" onclick="addItem()">+</button>
-                                <button type="button" class="btn btn-custom btn-danger ms-2" onclick="removeItem(this)" style="display:none;">-</button>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Existing form fields -->
-                    <br />
-                    <div class="row gy-4">
-                        <div class="col-lg-4 col-md-6">
-                            <input type="text" name="name" class="form-control" id="nameCus" placeholder="Your Name">
-                            <div class="validate"></div>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <input type="email" class="form-control" name="email" id="emailCus" placeholder="Your Email">
-                            <div class="validate"></div>
-                        </div>
-                        <div class="col-lg-4 col-md-6">
-                            <input type="text" class="form-control" name="phone" id="phoneCus" placeholder="Your Phone">
-                            <div class="validate"></div>
-                        </div>                       
-                        <div class="col-lg-4 col-md-6">
-                            <select id="tableDropdown" class="form-control" name="table">
-                                <option value="">Select a table</option>
-                            </select>
-                            <div class="validate"></div>
-                        </div>
-                    </div>
-
-                    <!-- Existing form fields -->
-                    <div class="form-group mt-3">
-                        <textarea class="form-control" name="message" rows="5" placeholder="Message"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        @* <div class="loading">Loading</div>
-                        <div class="error-message"></div>
-                        <div class="sent-message"></div> *@
-                    </div>
-                    <div>
-                        <p id="total" style="color:#CE1212; font-size:25px;">Total: $0.00</p>
-
-                    </div>
-                    <div class="text-center">
-                        <button type="submit">Order Now</button>
-                    </div>
-
-                </form>
-            </div>
-        </div>
-
-    </div>
-</section><!-- End Book A Table Section -->
 <!-- ======= Book A Table Section ======= -->
 <section id="book-a-table" class="book-a-table">
     <div class="container" data-aos="fade-up">
@@ -556,32 +470,32 @@
                     <div class="row gy-4">
                         <div class="col-lg-4 col-md-6">
                             <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
-                            <div class="validate"></div>
+                            @* <div class="validate"></div> *@
                         </div>
                         <div class="col-lg-4 col-md-6">
                             <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" data-rule="email" data-msg="Please enter a valid email">
-                            <div class="validate"></div>
+                            @* <div class="validate"></div> *@
                         </div>
                         <div class="col-lg-4 col-md-6">
                             <input type="text" class="form-control" name="phone" id="phone" placeholder="Your Phone" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
-                            <div class="validate"></div>
+                            @* <div class="validate"></div> *@
                         </div>
                         <div class="col-lg-4 col-md-6">
                             <input type="date" name="date" class="form-control" id="date" placeholder="Date" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
-                            <div class="validate"></div>
+                            @* <div class="validate"></div> *@
                         </div>
                         <div class="col-lg-4 col-md-6">
                             <input type="time" class="form-control" name="time" id="time" placeholder="Time" data-rule="minlen:4" data-msg="Please enter at least 4 chars">
-                            <div class="validate"></div>
+                            @* <div class="validate"></div> *@
                         </div>
                         <div class="col-lg-4 col-md-6">
                             <input type="number" class="form-control" name="people" id="people" placeholder="# of people" data-rule="minlen:1" data-msg="Please enter at least 1 chars">
-                            <div class="validate"></div>
+                            @* <div class="validate"></div> *@
                         </div>
                     </div>
                     <div class="form-group mt-3">
                         <textarea class="form-control" name="message" id="message" rows="5" placeholder="Message"></textarea>
-                        <div class="validate"></div>
+                        @* <div class="validate"></div> *@
                     </div>
                     <div class="mb-3">
                         <div class="error-message"></div>
@@ -726,88 +640,57 @@
     </div>
 </div>
 
-<div id="preloader"></div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<script>
+    $(document).ready(function () {
+        $("#bookingForm").on("submit", function (event) {
+            event.preventDefault(); // Ngăn chặn form gửi đi mặc định
+
+            const name = $("#name").val();
+            const email = $("#email").val();
+            const phone = $("#phone").val();
+            const date = $("#date").val();
+            const time = $("#time").val();
+            const people = $("#people").val();
+            const message = $("#message").val();
+
+            const bookingRequest = {
+                customer: {
+                    id: 0, // Nếu không có ID, có thể bỏ qua hoặc để giá trị mặc định
+                    name: name,
+                    email: email,
+                    phone: phone
+                },
+                date: date,
+                time: time,
+                numberOfPeople: parseInt(people),
+                note: message
+            };
+
+            $.ajax({
+                url: "https://localhost:7130/api/Booking/book",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(bookingRequest),
+                success: function (response) {
+                    alert("Order success! Check mail to confirm");
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    const errorData = jqXHR.responseJSON;
+                    alert('Booking did not succeed: ' + (errorData?.message || textStatus));
+                }
+            });
+        });
+    });
+</script>
 <!-- Vendor JS Files -->
 <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 <script src="~/assets/vendor/aos/aos.js"></script>
 <script src="~/assets/vendor/glightbox/js/glightbox.min.js"></script>
 <script src="~/assets/vendor/purecounter/purecounter_vanilla.js"></script>
 <script src="~/assets/vendor/swiper/swiper-bundle.min.js"></script>
-<script src="~/assets/vendor/php-email-form/validate.js"></script>
+
 
 <!-- Template Main JS File -->
 <script src="~/assets/js/main.js"></script>
-<script>
-    function confirmRedirect(url) {
-        if (confirm('Bạn có muốn xem chi tiết không?')) {
-            window.location.href = url;
-            return false; // Prevent the default link action
-        } else {
-            return false; // Prevent the default link action
-        }
-    }
-    document.addEventListener("DOMContentLoaded", function () {
-        // Gọi API để lấy danh sách các table khi trang được tải
-        fetch("https://localhost:7135/api/Table")
-            .then(response => response.json())
-            .then(data => {
-                const dropdown = document.getElementById("tableDropdown");
-                data.forEach(table => {
-                    const option = document.createElement("option");
-                    option.value = table.id; // Sử dụng ID của table làm giá trị
-                    option.textContent = `${table.name} - ${table.position} (${table.numberOfPeople} people)`;
-                    dropdown.appendChild(option);
-                });
-            })
-            .catch(error => {
-                console.error('Error fetching tables:', error);
-            });
-    });
-
-    document.getElementById("orderForm").addEventListener("submit", async function (event) {
-        event.preventDefault(); // Ngăn chặn form gửi đi mặc định
-
-        const name = document.getElementById("nameCus").value;
-        const email = document.getElementById("emailCus").value;
-        const phone = document.getElementById("phoneCus").value;
-        const table = document.getElementById("tableDropdown").value; // Lấy giá trị từ dropdown
-        const message = document.querySelector("textarea[name='message']").value;
-
-        const orderRequest = {
-            customer: {
-                name: name,
-                email: email,
-                phone: phone
-            },
-            table: table, // Chỉ gửi thông tin về table
-            message: message
-        };
-
-        try {
-            const response = await fetch("https://localhost:7130/api/Booking/book", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(orderRequest)
-            });
-
-            if (response.ok) {
-                document.querySelector(".sent-message").style.display = "block";
-                document.querySelector(".error-message").style.display = "none";
-            } else {
-                const errorData = await response.json();
-                document.querySelector(".error-message").innerText = errorData.title || "Error occurred";
-                document.querySelector(".error-message").style.display = "block";
-                document.querySelector(".sent-message").style.display = "none";
-            }
-        } catch (error) {
-            document.querySelector(".error-message").innerText = error.message;
-            document.querySelector(".error-message").style.display = "block";
-            document.querySelector(".sent-message").style.display = "none";
-        } finally {
-            document.querySelector(".loading").style.display = "none";
-        }
-    });
-</script>
