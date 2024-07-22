@@ -14,6 +14,7 @@ namespace Project_API.Controllers
     {
         PizzaLabContext context = new PizzaLabContext();
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult getAllProduct()
         {
             var product = context.Products.ToList();
@@ -21,6 +22,7 @@ namespace Project_API.Controllers
 
         }
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public IActionResult getProductById(int id)
         {
             if (id > 0)
@@ -39,6 +41,7 @@ namespace Project_API.Controllers
 
 
         [HttpGet("[action]")]
+        [AllowAnonymous]
         public IActionResult getProduct(int id)
         {
             if (id > 0)
@@ -53,11 +56,11 @@ namespace Project_API.Controllers
                                                p.Description,
                                                p.Image,
                                                p.Weight,
-											   p.CategoryId,
+                                               p.CategoryId,
                                                p.Ammount,
                                                p.Price,
                                                c.CategoryName
-  
+
                                            }).FirstOrDefault();
 
                 if (productWithCategory == null)
@@ -99,6 +102,52 @@ namespace Project_API.Controllers
 
             return Ok(productsWithCategory);
         }
+
+        [HttpGet("GetAll")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
+        {
+            var products = await context.Products
+                .Include(p => p.Category) // Bao gồm thông tin danh mục
+                .ToListAsync();
+
+            var productDtos = products.Select(product => new ProductDTO
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Weight = product.Weight,
+                Image = product.Image, // Giả sử bạn lưu hình ảnh dưới dạng Base64
+                Ammount = product.Ammount,
+                CategoryName = product.Category.CategoryName // Lấy tên danh mục
+            }).ToList();
+
+            return Ok(productDtos);
+        }
+
+        [HttpGet("SearchProductByName/{name}")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProductByName(string name)
+        {
+            var lowerCaseName = name.ToLower();
+
+            var productDtos = await context.Products
+                .Where(p => p.Name.ToLower().Contains(lowerCaseName))
+                .Select(p => new ProductDTO
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Weight = p.Weight,
+                    Image = p.Image, // Giả sử bạn lưu hình ảnh dưới dạng Base64
+                    Ammount = p.Ammount,
+                    CategoryName = p.Category.CategoryName // Lấy tên danh mục
+                })
+                .ToListAsync();
+
+            return Ok(productDtos);
+        }
+
         [HttpPost("AddProduct")]
         public async Task<ActionResult<Product>> PostProduct([FromForm] ProductDTO productDto)
         {
@@ -128,9 +177,10 @@ namespace Project_API.Controllers
 
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
-        [HttpPut("UpdateProduct/{id}")]
+        [HttpPost("UpdateProduct/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromForm] ProductDTO productDto)
         {
+
             if (id != productDto.Id)
             {
                 return BadRequest("Product ID mismatch");

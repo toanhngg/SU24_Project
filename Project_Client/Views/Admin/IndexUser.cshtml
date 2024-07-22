@@ -1,135 +1,137 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    Layout = "_AdminLayout";
 }
-
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
+<link href="~/css/styles.css" rel="stylesheet" />
+<script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css">
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+<!-- Bootstrap JS -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
 <h2>Users</h2>
-<div class="card">
-    <div class="card-header">
-        <div class="row">
-            <div class="col-md-6 offset-md-6">
-                <button class="btn btn-primary float-right" id="btnAdd">+ Add</button>
+
+<div class="container-fluid px-4">
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-md-6">
+                    <input type="text" id="searchUserName" class="form-control" placeholder="Search by user name">
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-primary float-right" id="btnSearchUser">Search</button>
+                    <button class="btn btn-primary float-right" id="btnAddUser" style="margin-right: 10px;">+ Add</button>
+                </div>
+            </div>
+        </div>
+        <div id="user-container">
+            <table class="table table-striped table-bordered" style="width:100%" id="tblUser">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Id</th>
+                        <th>Email</th>
+                        <th>Password</th>
+                        <th>Full Name</th>
+                        <th>Contact Name</th>
+                        <th>Phone</th>
+                        <th>Role ID</th>
+                        <th>Active</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addUserForm">
+                        <div class="form-group">
+                            <label for="addEmail">Email</label>
+                            <input type="email" class="form-control" id="addEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addFirstName">First Name</label>
+                            <input type="text" class="form-control" id="addFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addLastName">Last Name</label>
+                            <input type="text" class="form-control" id="addLastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="addContactName">Contact Name</label>
+                            <input type="text" class="form-control" id="addContactName">
+                        </div>
+                        <div class="form-group">
+                            <label for="addPhone">Phone</label>
+                            <input type="text" class="form-control" id="addPhone">
+                        </div>
+                        <div class="form-group">
+                            <label for="addRole">Role</label>
+                            <select class="form-control" id="addRole" required>
+                                <option value="" disabled selected>Select a role</option>
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveUser">Save</button>
+                </div>
             </div>
         </div>
     </div>
-    <div id="user-container">
-        <table class="table table-striped table-bordered" style="width:100%" id="tblUser">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>Email</th>
-                    <th>Password</th>
-                    <th>First Name</th>
-                    <th>Last Name</th>
-                    <th>Contact Name</th>
-                    <th>Phone</th>
-                    <th>Role ID</th>
-                    <th>Active</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
 
-<!-- Add User Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addUserModalLabel">Add User</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addUserForm">
-                    <div class="form-group">
-                        <label for="addEmail">Email</label>
-                        <input type="email" class="form-control" id="addEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addPassword">Password</label>
-                        <input type="password" class="form-control" id="addPassword" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addFirstName">First Name</label>
-                        <input type="text" class="form-control" id="addFirstName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addLastName">Last Name</label>
-                        <input type="text" class="form-control" id="addLastName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addContactName">Contact Name</label>
-                        <input type="text" class="form-control" id="addContactName">
-                    </div>
-                    <div class="form-group">
-                        <label for="addPhone">Phone</label>
-                        <input type="text" class="form-control" id="addPhone">
-                    </div>
-                    <div class="form-group">
-                        <label for="addRoleId">Role ID</label>
-                        <input type="number" class="form-control" id="addRoleId" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="addActive">Active</label>
-                        <input type="checkbox" id="addActive">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveUser">Save</button>
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="form-group">
+                            <label for="editFirstName">First Name</label>
+                            <input type="text" class="form-control" id="editFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLastName">Last Name</label>
+                            <input type="text" class="form-control" id="editLastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editContactName">Contact Name</label>
+                            <input type="text" class="form-control" id="editContactName">
+                        </div>
+                        <div class="form-group">
+                            <label for="editPhone">Phone</label>
+                            <input type="text" class="form-control" id="editPhone">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="updateUser">Update</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Edit User Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editUserForm">
-                    <input type="hidden" id="editUserId">
-                    <div class="form-group">
-                        <label for="editFirstName">First Name</label>
-                        <input type="text" class="form-control" id="editFirstName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editLastName">Last Name</label>
-                        <input type="text" class="form-control" id="editLastName" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editContactName">Contact Name</label>
-                        <input type="text" class="form-control" id="editContactName">
-                    </div>
-                    <div class="form-group">
-                        <label for="editPhone">Phone</label>
-                        <input type="text" class="form-control" id="editPhone">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="updateUser">Update</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     $(document).ready(function () {
         $(".modal .close, .modal button.btn-secondary").click(function () {
@@ -139,36 +141,59 @@
         // Load users
         loadUserList();
 
+        function loadRoles() {
+            $.ajax({
+                url: 'https://localhost:7135/api/Users/roles', // URL của API lấy danh sách vai trò
+                type: 'GET',
+                success: function (roles) {
+                    var $roleDropdown = $("#addRole");
+                    $roleDropdown.empty();
+                    $roleDropdown.append('<option value="" disabled selected>Select a role</option>');
+                    roles.forEach(function (role) {
+                        $roleDropdown.append('<option value="' + role.id + '">' + role.name + '</option>');
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error loading roles:', error);
+                    console.error('Response:', xhr.responseText);
+                }
+            });
+        }
+
+        // Load roles when document is ready
+        loadRoles();
+
         // Add User
-        $("#btnAdd").click(function () {
+        $("#btnAddUser").click(function () {
             $("#addUserModal").modal("show");
         });
 
+        // Lưu thông tin người dùng
         $("#saveUser").click(function () {
             var user = {
                 email: $("#addEmail").val(),
-                password: $("#addPassword").val(),
+                password: $("#addPassword").val(), // Use the password from the form
                 firstName: $("#addFirstName").val(),
                 lastName: $("#addLastName").val(),
                 contactName: $("#addContactName").val(),
                 phone: $("#addPhone").val(),
-                roleId: parseInt($("#addRoleId").val()), // Convert to int
+                roleId: parseInt($("#addRole").val(), 10), // Get value from the correct dropdown id
                 active: $("#addActive").is(":checked")
             };
 
             if (!user.email || !user.roleId || user.active === undefined) {
-                alert("Email, Role ID and Active status are required fields.");
+                alert("Email, Role ID, and Active status are required.");
                 return;
             }
 
             $.ajax({
-                url: 'https://localhost:7135/api/Users',
+                url: 'https://localhost:7135/api/Users/CreateUser', // Endpoint to create user
                 type: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(user),
                 success: function (response) {
                     $("#addUserModal").modal("hide");
-                    loadUserList();
+                    loadUserList(); // Refresh user list
                 },
                 error: function (xhr, status, error) {
                     console.error('Error:', error);
@@ -241,6 +266,75 @@
             });
         });
 
+        $("#btnSearchUser").click(function () {
+            var searchUserName = $("#searchUserName").val();
+            if (searchUserName.trim() !== "") {
+                $.ajax({
+                    url: 'https://localhost:7135/api/Users/search/' + encodeURIComponent(searchUserName),
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (users) {
+                        var userContainer = $('#user-container').find('tbody');
+                        userContainer.empty();
+
+                        if (users.length > 0) {
+                            // Lưu trữ vai trò đã tải để tránh gọi API nhiều lần
+                            var roles = {};
+
+                            // Hiển thị dữ liệu người dùng trong bảng
+                            $.each(users, function (index, user) {
+                                // Kiểm tra xem vai trò đã được tải chưa
+                                if (!roles[user.roleId]) {
+                                    $.ajax({
+                                        url: 'https://localhost:7135/api/Users/api/Roles/' + user.roleId,
+                                        type: 'GET',
+                                        dataType: 'json',
+                                        async: false,
+                                        success: function (role) {
+                                            roles[user.roleId] = role.name;
+                                        },
+                                        error: function (xhr, status, error) {
+                                            console.error('Error:', error);
+                                            console.error('Response:', xhr.responseText);
+                                        }
+                                    });
+                                }
+
+                                // Hiển thị người dùng
+                                var row = '<tr>' +
+                                    '<td>' + user.id + '</td>' +
+                                    '<td>' + user.email + '</td>' +
+                                    '<td>' + user.password + '</td>' +
+                                    '<td>' + user.firstName + ' ' + user.lastName + '</td>' + // Hiển thị tên đầy đủ
+                                    '<td>' + user.contactName + '</td>' +
+                                    '<td>' + user.phone + '</td>' +
+                                    '<td>' + (roles[user.roleId] || 'Unknown') + '</td>' +
+                                    '<td>' + user.active + '</td>' +
+                                    '<td>' +
+                                    '<button class="btn btn-info btnEdit" data-id="' + user.id + '">Edit</button>' +
+                                    ' <button class="btn btn-warning btnChangeStatus" data-id="' + user.id + '">Change Status</button>' +
+                                    '</td>' +
+                                    '</tr>';
+                                userContainer.append(row);
+                            });
+                        } else {
+                            alert('No users found');
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log("Error occurred while searching users", xhr);
+                        var errorMessage = 'Error occurred while searching users.';
+                        if (xhr.responseJSON && xhr.responseJSON.title) {
+                            errorMessage = xhr.responseJSON.title;
+                        }
+                        alert(errorMessage);
+                    }
+                });
+            } else {
+                // Nếu không có từ khóa tìm kiếm, tải tất cả người dùng
+                loadUserList();
+            }
+        });
         function loadUserList() {
             $.ajax({
                 url: 'https://localhost:7135/api/Users',
@@ -250,17 +344,37 @@
                     var userContainer = $('#user-container').find('tbody');
                     userContainer.empty();
 
-                    // Display user data in the table
+                    // Lưu trữ vai trò đã tải để tránh gọi API nhiều lần
+                    var roles = {};
+
+                    // Hiển thị dữ liệu người dùng trong bảng
                     $.each(users, function (index, user) {
+                        // Kiểm tra xem vai trò đã được tải chưa
+                        if (!roles[user.roleId]) {
+                            $.ajax({
+                                url: 'https://localhost:7135/api/Users/api/Roles/' + user.roleId,
+                                type: 'GET',
+                                dataType: 'json',
+                                async: false,
+                                success: function (role) {
+                                    roles[user.roleId] = role.name;
+                                },
+                                error: function (xhr, status, error) {
+                                    console.error('Error:', error);
+                                    console.error('Response:', xhr.responseText);
+                                }
+                            });
+                        }
+
+                        // Hiển thị người dùng
                         var row = '<tr>' +
                             '<td>' + user.id + '</td>' +
                             '<td>' + user.email + '</td>' +
                             '<td>' + user.password + '</td>' +
-                            '<td>' + user.firstName + '</td>' +
-                            '<td>' + user.lastName + '</td>' +
+                            '<td>' + user.firstName + ' ' + user.lastName + '</td>' + // Hiển thị tên đầy đủ
                             '<td>' + user.contactName + '</td>' +
                             '<td>' + user.phone + '</td>' +
-                            '<td>' + user.roleId + '</td>' +
+                            '<td>' + (roles[user.roleId] || 'Unknown') + '</td>' +
                             '<td>' + user.active + '</td>' +
                             '<td>' +
                             '<button class="btn btn-info btnEdit" data-id="' + user.id + '">Edit</button>' +

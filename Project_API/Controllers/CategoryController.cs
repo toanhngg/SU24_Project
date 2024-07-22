@@ -13,12 +13,14 @@ namespace Project_API.Controllers
     {
         PizzaLabContext context = new PizzaLabContext();
         [HttpGet]
+        [AllowAnonymous]
         public IActionResult getCategory()
         {
             var category = context.Categories.ToList();
             return Ok(category);
         }
         [HttpGet("GetCategory/{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
             var category = await context.Categories.FindAsync(id);
@@ -94,6 +96,28 @@ namespace Project_API.Controllers
             }
 
             return Ok(categoryToUpdate);
+        }
+
+
+        [HttpGet("Search/{name}")]
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> SearchCategoryByName(string name)
+        {
+            var categories = await context.Categories
+                .Where(c => c.CategoryName.Contains(name))
+                .Select(c => new CategoryDTO
+                {
+                    Id = c.Id,
+                    CategoryName = c.CategoryName,
+                    Description = c.Description
+                })
+                .ToListAsync();
+
+            if (categories == null || categories.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return Ok(categories);
         }
 
         private bool CategoryExists(int id)

@@ -44,6 +44,7 @@ namespace Project_Client
             });
 
             var app = builder.Build();
+            app.UseWebSockets();
 
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
@@ -65,7 +66,7 @@ namespace Project_Client
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Admin}/{action=Login}/{id?}");
 
             app.Run();
         }

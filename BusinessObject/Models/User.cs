@@ -7,7 +7,7 @@ namespace BusinessObject.Models
     {
         public User()
         {
-            Orders = new HashSet<Order>();
+            Bookings = new HashSet<Booking>();
             Reviews = new HashSet<Review>();
         }
 
@@ -22,7 +22,7 @@ namespace BusinessObject.Models
         public bool Active { get; set; }
 
         public virtual Role Role { get; set; } = null!;
-        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Review> Reviews { get; set; }
     }
 }

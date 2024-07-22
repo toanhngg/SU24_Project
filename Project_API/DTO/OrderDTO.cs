@@ -11,15 +11,13 @@ namespace Project_API.DTO
         public int UserId { get; set; }
         [JsonIgnore]
         public bool Status { get; set; }
-
+        [JsonIgnore]
         public DateTime OrderDate { get; set; }
-        public DateTime? RequiredDate { get; set; }
-        public DateTime? ShippedDate { get; set; }
         public decimal? Freight { get; set; }
 
         public int TableAdress { get; set; }
         [JsonIgnore]
-        public bool? IsCart { get; set; }
+        public bool? IsCheck { get; set; }
         public virtual CustomerDTO? Customer { get; set; }
 
         public virtual ICollection<OrderDetailDTO> OrderDetails { get; set; }
