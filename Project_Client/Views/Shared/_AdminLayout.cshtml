@@ -11,39 +11,6 @@
     <link href="~/css/styles.css" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
     <style>
-    
-            /* Định dạng tiêu đề bảng */
-            #bookingTable thead {
-                background-color: #343a40; /* Màu nền cho tiêu đề bảng */
-                color: #ffffff; /* Màu chữ cho tiêu đề bảng */
-            }
-
-            #bookingTable th {
-                padding: 12px 15px; /* Khoảng cách xung quanh nội dung tiêu đề */
-                text-align: left; /* Căn trái nội dung tiêu đề */
-                border-bottom: 1px solid #dee2e6; /* Đường viền dưới tiêu đề bảng */
-            }
-
-            /* Định dạng các hàng trong bảng */
-            #bookingTable tbody tr:nth-child(even) {
-                background-color: #f8f9fa; /* Màu nền cho hàng chẵn */
-            }
-
-            #bookingTable tbody tr:nth-child(odd) {
-                background-color: #ffffff; /* Màu nền cho hàng lẻ */
-            }
-
-            #bookingTable td {
-                padding: 12px 15px; /* Khoảng cách xung quanh nội dung ô */
-                border-bottom: 1px solid #dee2e6; /* Đường viền dưới các ô dữ liệu */
-            }
-
-            /* Định dạng bảng khi không có dữ liệu */
-            #bookingTable tbody tr.empty-row td {
-                text-align: center; /* Căn giữa nội dung khi không có dữ liệu */
-                color: #6c757d; /* Màu chữ cho hàng không có dữ liệu */
-            }
-
         /* Modal overlay */
         .modal {
             display: none; /* Ẩn modal khi chưa mở */
@@ -134,14 +101,14 @@
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!">
             <i class="fas fa-bars"></i>
         </button>
-        <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+    @*     <form class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
             <div class="input-group">
                 <input class="form-control" type="text" placeholder="Search for..." aria-label="Search for..." aria-describedby="btnNavbarSearch" />
                 <button class="btn btn-primary" id="btnNavbarSearch" type="button">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
-        </form>
+        </form> *@
         <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -164,7 +131,7 @@
                         <div class="sb-sidenav-menu-heading">Core</div>
                         <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
                             <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
-                            Dashboard
+                            Booking
                         </a>
                         <div class="sb-sidenav-menu-heading">Interface</div>
                         <a class="nav-link" asp-controller="Admin" asp-action="IndexProduct">
@@ -178,6 +145,10 @@
                         <a class="nav-link" asp-controller="Admin" asp-action="IndexCategory">
                             <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
                             Category
+                        </a>
+                        <a class="nav-link" asp-controller="Admin" asp-action="IndexUser">
+                            <div class="sb-nav-link-icon"><i class="fas fa-columns"></i></div>
+                            User
                         </a>
                         <div class="sb-sidenav-menu-heading">Addons</div>
                         <a class="nav-link" asp-controller="Admin" asp-action="Charts">
