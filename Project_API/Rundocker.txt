@@ -1,0 +1,12 @@
+﻿docker-compose up -d 
+(Chạy docker compose)
+docker-compose down
+(Dừng chạy docker compose)
+docker-compose logs elasticsearch
+docker-compose logs kibana
+docker-compose logs logstash
+(Xem log của ELK)
+docker ps
+(liệt kê ra các docker đang chạy)
+docker stop <container_id_or_name>
+(dừng container)
