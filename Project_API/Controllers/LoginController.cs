@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using Project_API.DTO;
 using Project_API.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -38,9 +39,24 @@ namespace Project_API.Controllers
             }
 
             // Tạo JWT
-            var tokenString = GenerateJSONWebToken(user);
+            var tokenString = GenerateJwtToken(user);
+
+            //var cookieOptions = new CookieOptions
+            //{
+            //    HttpOnly = false, // Makes the cookie inaccessible to JavaScript
+            //    Secure = true,   // Set to true if using HTTPS
+            //    SameSite = SameSiteMode.None, // Adjust based on your needs
+            //    Expires = DateTimeOffset.UtcNow.AddDays(7) // Set the cookie expiration
+            //};
+            //Response.Cookies.Append("authToken", tokenString, new CookieOptions
+            //{
+            //    HttpOnly = true, // Ngăn truy cập từ JavaScript
+            //    Secure = true,   // Chỉ truyền qua HTTPS
+            //    SameSite = SameSiteMode.Strict
+            //});
 
 
+            //  Response.Cookies.Append("authToken", tokenString, cookieOptions);
 
             // Trả về JWT trong response body nếu cần
             return Ok(new { token = tokenString });
@@ -76,14 +92,14 @@ namespace Project_API.Controllers
                 RoleId = user.RoleId
             };
             // Create a JWT token (simplified example, customize as needed)
-            var jwtToken = GenerateJSONWebToken(newuser);
+            var jwtToken = GenerateJwtToken(newuser);
 
             // Set the JWT token as a cookie
             Response.Cookies.Append("authToken", jwtToken, new Microsoft.AspNetCore.Http.CookieOptions
             {
                 HttpOnly = true, // Cookie only accessible via server
                 Secure = true, // Only send cookie over HTTPS
-                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict, // Only send cookie within the same site
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None, // Only send cookie within the same site
                 Expires = DateTime.UtcNow.AddHours(1), // Cookie expiration time
                 Path = "/" // Ensure the cookie is available to all paths
             });
@@ -93,35 +109,58 @@ namespace Project_API.Controllers
         }
 
 
-        [HttpGet("GetAuthToken")]
-        public IActionResult GetAuthToken()
+        //[HttpGet("GetauthToken")]
+        //public IActionResult GetauthToken()
+        //{
+        //    var authToken = Request.Cookies["authToken"];
+        //    if (string.IsNullOrEmpty(authToken))
+        //    {
+        //        return BadRequest(new { title = "Cookie không tồn tại hoặc không có giá trị." });
+        //    }
+        //    return Ok(new { authToken = authToken });
+        //}
+
+
+        //private string GenerateJSONWebToken(UserModel userInfo)
+        //{
+        //    var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        //    var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        //    var claims = new[] {
+        //        new Claim(JwtRegisteredClaimNames.Email, userInfo.Email),
+        //        new Claim(ClaimTypes.Role, userInfo.RoleId.ToString()) };
+
+        //    var token = new JwtSecurityToken(_config["Jwt:Issuer"],
+        //      _config["Jwt:Audience"],
+        //      claims,
+        //      expires: DateTime.Now.AddMinutes(120),
+        //      signingCredentials: credentials);
+
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+
+        //}
+        private string GenerateJwtToken(UserModel user)
         {
-            var authToken = Request.Cookies["authToken"];
-            if (string.IsNullOrEmpty(authToken))
-            {
-                return BadRequest(new { title = "Cookie không tồn tại hoặc không có giá trị." });
-            }
-            return Ok(new { authToken = authToken });
-        }
+            var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.Name, user.Email),
+        new Claim(ClaimTypes.Role, user.RoleId.ToString())  // Thêm vai trò của user
+    };
 
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        private string GenerateJSONWebToken(UserModel userInfo)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var claims = new[] {
-                new Claim(JwtRegisteredClaimNames.Email, userInfo.Email),
-                new Claim(ClaimTypes.Role, userInfo.RoleId.ToString()) };
-
-            var token = new JwtSecurityToken(_config["Jwt:Issuer"],
-              _config["Jwt:Issuer"],
-              claims,
-              expires: DateTime.Now.AddMinutes(120),
-              signingCredentials: credentials);
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(30),
+                signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
-
         }
+
 
         private UserModel AuthenticateUser(UserModel login)
         {

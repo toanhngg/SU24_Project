@@ -39,6 +39,83 @@ namespace Project_Client.Controllers
         {
             return View();
         }
+        //[HttpPost]
+        //public async Task<IActionResult> Login1(string email, string password)
+        //{
+        //    using (HttpClient client = new HttpClient())
+        //    {
+        //        // Tạo đối tượng chứa dữ liệu đăng nhập
+        //        var loginData = new
+        //        {
+        //            Email = email,
+        //            Password = password
+        //        };
+
+        //        // Chuyển đối tượng thành JSON
+        //        var json = JsonConvert.SerializeObject(loginData);
+        //        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //        // Gửi yêu cầu POST với body
+        //        using (HttpResponseMessage res = await client.PostAsync(UserApiUrl, content))
+        //        {
+        //            if (res.IsSuccessStatusCode)
+        //            {
+        //                // Xử lý phản hồi thành công
+        //                var responseContent = await res.Content.ReadAsStringAsync();
+        //                // Có thể lưu JWT hoặc thông tin người dùng ở đây
+        //                var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseContent);
+        //                string jwt = jsonObject?.token;
+        //                Console.WriteLine(jwt);                                                  // Gửi JWT về client dưới dạng cookie
+        //                                                                                         //Response.Cookies.Append("toanhToken", responseContent, new CookieOptions
+        //                                                                                         //{
+        //                                                                                         //    HttpOnly = true, // Cookie chỉ có thể được truy cập từ server, không thể truy cập từ JavaScript
+        //                                                                                         //    Secure = true, // Chỉ gửi cookie qua HTTPS
+        //                                                                                         //    SameSite = SameSiteMode.None, // Chỉ gửi cookie trong cùng một trang
+        //                                                                                         //    Expires = DateTime.UtcNow.AddHours(1), // Thời gian hết hạn cho cookie
+        //                                                                                         //    Path = "/" // Đảm bảo rằng cookie có thể được gửi đến mọi đường dẫn
+        //                                                                                         //});
+
+        //                var cookieOptions = new CookieOptions
+        //                {
+        //                    HttpOnly = true, // Bảo vệ cookie khỏi truy cập từ JavaScript
+        //                    Secure = true,   // Cookie chỉ được gửi qua HTTPS
+        //                    Expires = DateTime.Now.AddHours(1)
+        //                };
+
+        //                // Gửi cookie xác thực về cho client
+        //                Response.Cookies.Append("authToken", jwt, cookieOptions);
+
+        //                string roleId = ParseJwt(jwt);
+        //                HttpContext.Session.SetString("UserEmail", email); // Lưu thông tin vào session
+        //                HttpContext.Session.SetString("UserRole", roleId); // Lưu thông tin vào session
+
+        //                TempData["RoleId"] = roleId;// Store the RoleId in TempData
+        //                if (roleId == "1")
+        //                {
+        //                    return RedirectToAction("Index", "Employee");
+
+        //                }
+        //                else if (roleId == "3")
+        //                {
+        //                    return RedirectToAction("Index", "Home");
+
+        //                }
+        //                else if (roleId == "2")
+        //                {
+        //                    return RedirectToAction("Dashboard", "Admin");
+        //                }
+        //                return RedirectToAction("Index", "Home");
+
+        //            }
+        //            else
+        //            {
+        //                // Xử lý lỗi
+        //                ModelState.AddModelError("", "Invalid user data");
+        //                return View();
+        //            }
+        //        }
+        //    }
+        //}
         [HttpPost]
         public async Task<IActionResult> Login1(string email, string password)
         {
@@ -66,19 +143,18 @@ namespace Project_Client.Controllers
                         var jsonObject = JsonConvert.DeserializeObject<dynamic>(responseContent);
                         string jwt = jsonObject?.token;
                         Console.WriteLine(jwt);                                                  // Gửi JWT về client dưới dạng cookie
-                        Response.Cookies.Append("authToken", responseContent, new CookieOptions
+                        Response.Cookies.Append("authToken", jwt, new CookieOptions
                         {
                             HttpOnly = true, // Cookie chỉ có thể được truy cập từ server, không thể truy cập từ JavaScript
                             Secure = true, // Chỉ gửi cookie qua HTTPS
-                            SameSite = SameSiteMode.Strict, // Chỉ gửi cookie trong cùng một trang
-                            Expires = DateTime.UtcNow.AddHours(1), // Thời gian hết hạn cho cookie
-                            Path = "/" // Đảm bảo rằng cookie có thể được gửi đến mọi đường dẫn
+                            Expires = DateTime.Now.AddHours(1), // Thời gian hết hạn cho cookie
                         });
                         string roleId = ParseJwt(jwt);
-                        HttpContext.Session.SetString("UserEmail", email); // Lưu thông tin vào session
-                        HttpContext.Session.SetString("UserRole", roleId); // Lưu thông tin vào session
+                        //HttpContext.Session.SetString("UserEmail", email); // Lưu thông tin vào session
+                        //HttpContext.Session.SetString("UserRole", roleId); // Lưu thông tin vào session
 
-                        TempData["RoleId"] = roleId;// Store the RoleId in TempData
+                        //TempData["RoleId"] = roleId;// Store the RoleId in TempData
+                       // var roleId = User.FindFirst(ClaimTypes.Role)?.Value;
                         if (roleId == "1")
                         {
                             return RedirectToAction("Index", "Employee");
@@ -169,11 +245,11 @@ namespace Project_Client.Controllers
                         // Có thể lưu JWT hoặc thông tin người dùng ở đây
                         HttpContext.Session.SetString("UserEmail", user.Email); // Lưu thông tin vào session
                                                                                 // Gửi JWT về client dưới dạng cookie
-                        Response.Cookies.Append("authToken", responseContent, new CookieOptions
+                        Response.Cookies.Append("toanhToken", responseContent, new CookieOptions
                         {
                             HttpOnly = true, // Cookie chỉ có thể được truy cập từ server, không thể truy cập từ JavaScript
                             Secure = true, // Chỉ gửi cookie qua HTTPS
-                            SameSite = SameSiteMode.Strict, // Chỉ gửi cookie trong cùng một trang
+                            SameSite = SameSiteMode.None, // Chỉ gửi cookie trong cùng một trang
                             Expires = DateTime.UtcNow.AddHours(1), // Thời gian hết hạn cho cookie
                             Path = "/" // Đảm bảo rằng cookie có thể được gửi đến mọi đường dẫn
                         });
