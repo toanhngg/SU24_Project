@@ -641,7 +641,16 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+<script>
+    function confirmRedirect(url) {
+        if (confirm('Bạn có muốn xem chi tiết không?')) {
+            window.location.href = url;
+            return false; // Prevent the default link action
+        } else {
+            return false; // Prevent the default link action
+        }
+    }
+</script>
 <script>
     $(document).ready(function () {
         $("#bookingForm").on("submit", function (event) {

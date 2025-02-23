@@ -12,6 +12,53 @@ namespace Project_API.Controllers
     public class CategoryController : ControllerBase
     {
         PizzaLabContext context = new PizzaLabContext();
+        [HttpPost("upload")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Test(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Không có tệp tin nào được chọn.");
+            }
+
+            string url = "https://34.150.7.40:3001/upload"; // URL của API bên ngoài
+
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                using (MultipartFormDataContent form = new MultipartFormDataContent())
+                {
+                    // Chuyển đổi IFormFile thành ByteArrayContent
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await file.CopyToAsync(memoryStream);
+                        ByteArrayContent fileContent = new ByteArrayContent(memoryStream.ToArray());
+                        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+                        // Thay đổi "file" bằng tên tham số mà API yêu cầu để nhận tệp
+                        form.Add(fileContent, "file", file.FileName);
+
+                        // Gửi yêu cầu POST đến API bên ngoài
+                        HttpResponseMessage response = await client.PostAsync(url, form);
+
+                        // Kiểm tra kết quả
+                        if (response.IsSuccessStatusCode)
+                        {
+                            return Ok("Tệp tin đã được tải lên thành công.");
+                        }
+                        else
+                        {
+                            string errorMessage = await response.Content.ReadAsStringAsync();
+                            return StatusCode((int)response.StatusCode, $"Lỗi: {response.StatusCode} - {errorMessage}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Đã xảy ra lỗi: {ex.Message}");
+            }
+        }
         [HttpGet]
         [AllowAnonymous]
         public IActionResult getCategory()

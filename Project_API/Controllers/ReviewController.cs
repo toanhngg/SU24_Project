@@ -108,7 +108,7 @@ namespace Project_API.Controllers
             _context.Reviews.Add(review1);
             await _context.SaveChangesAsync();
 
-            return Ok(review1);
+            return Ok();
         }
 
         [HttpDelete("{id}")]
