@@ -1,11 +1,11 @@
 ﻿using BusinessObject.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Project_API.Extensions;
-using Project_API.Service;
 using System.Text;
 
 public class Program
@@ -13,32 +13,16 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        //var rabbitMqConfig = builder.Configuration.GetSection("RabbitMQ");
-        //string hostName = rabbitMqConfig["HostName"];
-        //string userName = rabbitMqConfig["UserName"];
-        //string password = rabbitMqConfig["Password"];
-
-        //// Thêm RabbitMQService vào DI container
-        //builder.Services.AddRabbitMQ(hostName, userName, password);
-        //builder.Services.AddSingleton<RabbitMQService>();
 
         // Cấu hình DbContext
         builder.Services.AddDbContext<PizzaLabContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        // Cấu hình Authentication
+        // Cấu hình Authentication với JWT
         builder.Services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Thay đổi thành JwtBearerDefaults.AuthenticationScheme nếu bạn muốn JwtBearer làm scheme mặc định
-        })
-        .AddCookie(options =>
-        {
-            options.Cookie.HttpOnly = true;
-            options.Cookie.Name = "authToken";
-            options.Cookie.SameSite = SameSiteMode.Strict;
-            options.LoginPath = "/Account/Login";
-            options.LogoutPath = "/Account/Logout";
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         })
         .AddJwtBearer(options =>
         {
@@ -49,24 +33,44 @@ public class Program
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                ValidAudience = builder.Configuration["Jwt:Issuer"],
+                ValidAudience = builder.Configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            };
+
+            options.Events = new JwtBearerEvents
+            {
+                // Thêm event lấy token từ cookie
+                OnMessageReceived = context =>
+                {
+                    var token = context.Request.Cookies["authToken"]; // Lấy token từ cookie
+                    if (!string.IsNullOrEmpty(token))
+                    {
+                        context.Token = token; // Thiết lập token từ cookie
+                    }
+                    return Task.CompletedTask;
+                },
+                OnAuthenticationFailed = context =>
+                {
+                    Console.WriteLine("Authentication failed: " + context.Exception.Message);
+                    return Task.CompletedTask;
+                }
             };
         });
 
-        // Cấu hình CORS
+        // Cấu hình CORS để hỗ trợ Cross-Origin Requests
         builder.Services.AddCors(options =>
         {
-            options.AddDefaultPolicy(policy =>
-            {
-                policy.WithOrigins("https://localhost:7164") // Thay thế bằng URL của bạn
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                      .AllowCredentials(); // Cho phép gửi cookie
-            });
+            options.AddPolicy("AllowSpecificOrigins",
+                policyBuilder =>
+                {
+                    policyBuilder.WithOrigins("https://localhost:7164") // URL của client
+                           .AllowAnyHeader()
+                           .AllowAnyMethod()
+                           .AllowCredentials(); // Cho phép gửi cookie
+                });
         });
 
-        // Cấu hình MVC và Swagger
+        // Cấu hình MVC và Swagger cho API
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(c =>
@@ -75,8 +79,8 @@ public class Program
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = @"JWT Authorization header using the Bearer scheme. \r\n\r\n
-                  Enter 'Bearer' [space] and then your token in the text input below.
-                  \r\n\r\nExample: 'Bearer 12345abcdef'",
+                                Enter 'Bearer' [space] and then your token in the text input below.
+                                \r\n\r\nExample: 'Bearer 12345abcdef'",
                 Name = "Authorization",
                 In = ParameterLocation.Header,
                 Type = SecuritySchemeType.ApiKey,
@@ -87,7 +91,7 @@ public class Program
         var app = builder.Build();
 
         // Sử dụng CORS
-        app.UseCors();
+        app.UseCors("AllowSpecificOrigins");
 
         // Middleware để chuyển hướng https
         app.UseHttpsRedirection();
@@ -95,6 +99,19 @@ public class Program
         // Middleware để cấu hình Authentication và Authorization
         app.UseAuthentication();
         app.UseAuthorization();
+
+        // Middleware để lấy JWT từ cookie và gắn vào header Authorization
+        app.Use(async (context, next) =>
+        {
+            var token = context.Request.Cookies["authToken"]; // Lấy JWT từ cookie
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Request.Headers.Add("Authorization", $"Bearer {token}"); // Đính kèm JWT vào header Authorization
+            }
+
+            await next();
+        });
 
         // Cấu hình Swagger cho môi trường phát triển
         if (app.Environment.IsDevelopment())

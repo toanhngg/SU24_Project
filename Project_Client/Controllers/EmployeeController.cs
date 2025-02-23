@@ -59,7 +59,7 @@ namespace Project_Client.Controllers
                         {
                             HttpOnly = true, // Cookie chỉ có thể được truy cập từ server, không thể truy cập từ JavaScript
                             Secure = true, // Chỉ gửi cookie qua HTTPS
-                            SameSite = SameSiteMode.Strict, // Chỉ gửi cookie trong cùng một trang
+                            SameSite = SameSiteMode.None, // Chỉ gửi cookie trong cùng một trang
                             Expires = DateTime.UtcNow.AddHours(1), // Thời gian hết hạn cho cookie
                             Path = "/" // Đảm bảo rằng cookie có thể được gửi đến mọi đường dẫn
                         });

@@ -193,6 +193,9 @@
                     contentType: false,
                     processData: false,
                     data: formData,
+                    xhrFields: {
+                        withCredentials: true // Gửi cookie với yêu cầu
+                    },
                     success: function (response) {
                         $("#addProductModal").modal("hide");
                         loadProductList();
@@ -356,7 +359,9 @@
                     url: 'https://localhost:7135/api/Products/GetAll',
                     type: 'GET',
                     dataType: 'json',
-                    success: function (products) {
+                    xhrFields: {
+                        withCredentials: true // Gửi cookie với yêu cầu
+                    }, success: function (products) {
                         var productContainer = $('#product-container').find('tbody');
                         productContainer.empty();
                         $.each(products, function (index, product) {

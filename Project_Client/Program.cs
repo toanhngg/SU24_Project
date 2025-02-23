@@ -32,16 +32,16 @@ namespace Project_Client
             });
 
             // Add CORS policy
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll",
-                    builder =>
-                    {
-                        builder.AllowAnyOrigin()
-                               .AllowAnyMethod()
-                               .AllowAnyHeader();
-                    });
-            });
+            //builder.Services.AddCors(options =>
+            //{
+            //    options.AddPolicy("AllowAll",
+            //        builder =>
+            //        {
+            //            builder.AllowAnyOrigin()
+            //                   .AllowAnyMethod()
+            //                   .AllowAnyHeader();
+            //        });
+            //});
 
             var app = builder.Build();
             app.UseWebSockets();
@@ -59,7 +59,7 @@ namespace Project_Client
 
             app.UseRouting();
 
-            app.UseCors("AllowAll"); // Apply CORS policy
+          //  app.UseCors("AllowAll"); // Apply CORS policy
 
             app.UseAuthorization();
             app.UseSession(); // Thêm dòng này để sử dụng session

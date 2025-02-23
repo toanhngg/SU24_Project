@@ -88,8 +88,8 @@ function updateButtons() {
     });
 }
 
-//async function getAuthToken() {
-//    fetch('https://localhost:7135/api/Login/GetAuthToken', {
+//async function gettoanhToken() {
+//    fetch('https://localhost:7135/api/Login/GettoanhToken', {
 //        method: 'GET',
 //        headers: {
 //            'Content-Type': 'application/json'

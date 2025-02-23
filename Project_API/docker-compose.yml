@@ -1,0 +1,39 @@
+﻿version: '3.7'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.15.0
+    container_name: logstash
+    ports:
+      - 5000:5000
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.15.0
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+
+volumes:
+  elasticsearch-data:
+    driver: local
+
+# Chú thích:
+# - Elasticsearch chạy ở chế độ single-node và lắng nghe ở cổng 9200
+# - Logstash cần một file cấu hình pipeline, được mount từ ./logstash/pipeline
+# - Kibana sẽ có thể truy cập qua http://localhost:5601
+# - Dữ liệu Elasticsearch được lưu trữ trong một Docker volume để duy trì giữa các lần chạy

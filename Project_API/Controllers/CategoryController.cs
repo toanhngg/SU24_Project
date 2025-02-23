@@ -87,6 +87,8 @@ namespace Project_API.Controllers
             return Ok(categoryDto);
         }
         [HttpPost("AddCategory")]
+      //  [Authorize]
+        [Authorize(Roles = "2")]
         public async Task<ActionResult<Category>> PostCategory(CategoryDTO categoryDto)
         {
             var category = new Category

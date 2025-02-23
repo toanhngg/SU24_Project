@@ -112,24 +112,31 @@
         $("#btnAdd").click(function () {
             $("#addCategoryModal").modal("show");
         });
-
         $("#saveCategory").click(function () {
             var category = {
                 categoryName: $("#addCategoryName").val(),
                 description: $("#addCategoryDescription").val()
             };
+            console.log("Cookie hiện tại:", document.cookie);
 
-            $.ajax({
-                url: 'https://localhost:7135/api/Category/AddCategory',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(category),
-                success: function (response) {
-                    $("#addCategoryModal").modal("hide");
-                    loadCategoryList();
+            fetch('https://localhost:7135/api/Category/AddCategory', {
+                method: 'POST',
+                credentials: 'include', // Đảm bảo credentials được gửi đi
+                body: JSON.stringify(category), // Dùng đúng biến category
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            });
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json(); // Chuyển đổi response về JSON
+                })
+                .then(data => console.log(data))
+                .catch(error => console.error('Error:', error));
         });
+
 
         // Edit Category
         $(document).on("click", ".btnEdit", function () {
